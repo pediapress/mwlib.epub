@@ -277,12 +277,16 @@ def coll_from_zip(basedir, env):
         env = wiki.makewiki(env)
 
     coll = Collection(basedir=basedir,
-                      title=env.metabook.get('title', ''),
-                      subtitle=env.metabook.get('subtitle', ''),
-                      editor=env.metabook.get('editor', ''),
+                      title=env.metabook.title or '',
+                      subtitle=env.metabook.subtitle or '',
+                      editor=env.metabook.editor or '',
                       )
     missing_images = []
     for item in env.metabook.walk():
+        if item.type == 'chapter':
+            print 'skipping chapter', item.title
+            continue
+
         title = item.title
         url = item.wiki.getURL(title, item.revision)
 

@@ -91,7 +91,7 @@ class TreeProcessor(object):
         for query in queries:
             for node in article.tree.xpath(query):
                 p = node.getparent()
-                if p:
+                if len(p):
                     p.remove(node)
 
     def applyXSLT(self, article):

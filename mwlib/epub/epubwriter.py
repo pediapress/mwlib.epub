@@ -5,6 +5,7 @@ import os
 import shutil
 import zipfile
 import tempfile
+from pprint import pprint
 
 from collections import namedtuple
 
@@ -23,7 +24,7 @@ def serialize(f):
 
 class EpubContainer(object):
 
-    def __init__(self, fn):
+    def __init__(self, fn, coll):
         self.zf = zipfile.ZipFile(fn, 'w', compression=zipfile.ZIP_DEFLATED)
         self.zf.debug = 3
         self.added_files = set()
@@ -32,10 +33,8 @@ class EpubContainer(object):
 
         self.articles =[]
 
-        self.coll = {'title': 'FIXME - testtitle',
-                     'author': 'FIXME - testauthor',
-                     } # FIXME
-        
+        self.coll = coll
+
     def add_file(self, fn, content, compression=True):
         if fn in self.added_files:
             return
@@ -81,8 +80,8 @@ class EpubContainer(object):
                                                      ("dtb:depth", "1"),
                                                      ("dtb:totalPageCount", '0'),
                                                      ("dtb:maxPageNumber", '0') ]]),
-                     E.docTitle(E.text(self.coll.get('title', 'Untitled'))),
-                     E.docAuthor(E.text(self.coll.get('author', 'NN'))),
+                     E.docTitle(E.text(self.coll.title)),
+                     E.docAuthor(E.text(self.coll.editor)),
                      )
 
         nav_map = E.navMap(*[E.navPoint({'id': article.id,
@@ -102,9 +101,9 @@ class EpubContainer(object):
         def writeOPF_metadata():
             E = ElementMaker(nsmap=nsmap)
             DC = ElementMaker(namespace=nsmap['dc'])
-            author = self.coll.get('author', 'NN')
-            tree = E.metadata(DC.title('FIXME - title'),
-                              DC.creator('FIXME - %s' % author,
+            author = self.coll.editor
+            tree = E.metadata(DC.title(self.coll.title),
+                              DC.creator(author,  # FIXME
                                          {'{%s}role' % nsmap['opf']: 'aut',
                                           '{%s}file-as' % nsmap['opf']: author}))
             return tree
@@ -151,6 +150,9 @@ class EpubContainer(object):
             zip_fn = os.path.join(config.img_abs_path, os.path.basename(img_fn))
             self.link_file(img_fn, zip_fn, compression=False)
 
+        css_fn = webpage.tree.get('css_fn')
+        self.link_file(css_fn, 'OPS/wp.css') # fixme proper name
+
 class EpubWriter(object):
 
     def __init__(self, output, coll):
@@ -162,7 +164,7 @@ class EpubWriter(object):
         if not os.path.exists(self.target_dir):
             print 'created dir'
             os.makedirs(self.target_dir)
-        self.container = EpubContainer(self.output)
+        self.container = EpubContainer(self.output, self.coll)
 
     def closeContainer(self):
         self.container.close()
@@ -176,15 +178,11 @@ class EpubWriter(object):
         self.closeContainer()
 
     def processWebpage(self, webpage):
-        tree = webpage.tree
-
         self.tree_processor = TreeProcessor()
-
         #self.tree_processor.getMetaInfo(webpage)
         self.tree_processor.clean(webpage)
-
         self.remapLinks(webpage)
-        webpage.xml = self.serializeArticle(tree)
+        webpage.xml = self.serializeArticle(webpage.tree)
         self.container.addArticle(webpage)
 
     def remapLinks(self, webpage):
@@ -196,6 +194,8 @@ class EpubWriter(object):
 
         #FIXME: fix paths of css and other resource files.
         #intra-collection links need to be detected and remapped as well
+        for link in webpage.tree.findall('.//link'):
+            link.set('href','wp.css')
 
     def serializeArticle(self, node):
         assert not node.find('.//body'), 'error: node contains BODY tag'

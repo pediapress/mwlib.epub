@@ -127,6 +127,7 @@ class WebPage(object):
             head = etree.Element('head')
             article.insert(0, head)
         head.append(link)
+        article.set('css_fn', css_path)
 
     def _get_parse_tree(self, data=None):
         if not data:
@@ -274,8 +275,12 @@ def coll_from_zip(basedir, env):
     if isinstance(env, basestring):       
         from mwlib import wiki
         env = wiki.makewiki(env)
-        
-    coll = Collection(basedir=basedir)
+
+    coll = Collection(basedir=basedir,
+                      title=env.metabook.get('title', ''),
+                      subtitle=env.metabook.get('subtitle', ''),
+                      editor=env.metabook.get('editor', ''),
+                      )
     missing_images = []
     for item in env.metabook.walk():
         title = item.title

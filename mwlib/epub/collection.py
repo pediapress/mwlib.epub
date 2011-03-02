@@ -290,7 +290,7 @@ def coll_from_zip(basedir, env):
         title = item.title
         url = item.wiki.getURL(title, item.revision)
 
-        data = item.wiki.getHTML(title)
+        data = item.wiki.getHTML(title, item.revision)
 
         html = data['text']['*']
         html = '<div id="content"><h2>%s</h2>\n\n%s</div>' % (title.encode('utf-8'), html.encode('utf-8'))

@@ -242,6 +242,7 @@ class Collection(object):
         self.outline = Outline(self)
         self.custom_siteconfig = custom_siteconfig
         self.siteconfig = SiteConfigHandler(custom_siteconfig=custom_siteconfig)
+        self.url2webpage = {}
 
     def dump(self):
         data = {
@@ -279,6 +280,9 @@ class Collection(object):
         for level, webpage in self.outline.walk(cls=WebPage):
             webpage.fetch()
 
+    def append(self, wp):
+        self.outline.append(wp)
+        self.url2webpage[wp.canonical_url] = wp
 
 def coll_from_zip(basedir, env):
 
@@ -319,6 +323,7 @@ def coll_from_zip(basedir, env):
         html = '<div id="content"><h2>%s</h2>\n\n%s</div>' % (title.encode('utf-8'), html.encode('utf-8'))
 
         wp = WebPage(coll, title, url, user_agent='Mozilla/5.0') # images
+        wp.canonical_url = urlparse.urljoin(item._env.wiki.siteinfo['general']['base'], title.replace(' ', '_'))
         open(wp.get_path('content.orig'), 'wb').write(html)
         wp.tree = wp._get_parse_tree(html)
 
@@ -340,7 +345,7 @@ def coll_from_zip(basedir, env):
                     print 'image not found', src
                     missing_images.append(title)
 
-        coll.outline.append(wp)
+        coll.append(wp)
 
     return coll
 

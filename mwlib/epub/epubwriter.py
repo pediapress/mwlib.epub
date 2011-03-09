@@ -6,6 +6,7 @@ import shutil
 import zipfile
 import tempfile
 import mimetypes
+import urlparse
 
 from pprint import pprint
 
@@ -15,7 +16,7 @@ from lxml import etree
 from lxml.builder import ElementMaker
 
 from mwlib.epub import config
-from mwlib.epub.treeprocessor import TreeProcessor, safe_xml_id
+from mwlib.epub.treeprocessor import TreeProcessor, safe_xml_id, clean_url
 from mwlib.epub.collection import coll_from_zip
 
 
@@ -133,7 +134,9 @@ class EpubContainer(object):
                 mimetype, encoding = mimetypes.guess_type(fn)
                 if mimetype in ['text/css',
                                 'image/png',
-                                'image/jpeg']:
+                                'image/jpeg',
+                                'image/gif',
+                                ]:
                     tree.append(E.item({'id': safe_xml_id(fn),
                                         'href': fn,
                                         'media-type': mimetype}))
@@ -192,7 +195,6 @@ class EpubWriter(object):
 
     def renderColl(self):
         self.initContainer()
-
         for lvl, webpage in self.coll.outline.walk():
             self.processWebpage(webpage)
 
@@ -219,6 +221,23 @@ class EpubWriter(object):
         #intra-collection links need to be detected and remapped as well
         for link in webpage.tree.findall('.//link'):
             link.set('href','wp.css')
+
+        target_ids =  webpage.tree.xpath('.//@id')
+        for a in webpage.tree.findall('.//a'):
+            href = a.get('href')
+            if href.startswith('#'):
+                target_id = safe_xml_id(href)[1:]
+                if target_id not in target_ids:
+                    a.set('id', target_id)
+                    target_ids.append(target_id)
+                a.set('href', '#'+target_id)
+            else:
+                url = clean_url(urlparse.urljoin(webpage.url.encode('utf-8'), href))
+                linked_wp = webpage.coll.url2webpage.get(url)
+                if linked_wp:
+                    a.set('href', linked_wp.id + '.xhtml')
+                else:
+                    a.set('href', url)
 
     def serializeArticle(self, node):
         assert not node.find('.//body'), 'error: node contains BODY tag'

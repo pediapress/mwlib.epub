@@ -2,10 +2,16 @@
 #! -*- coding:utf-8 -*-
 
 from StringIO import StringIO
+import urlparse
+import urllib
 from lxml import etree
 
 def safe_xml_id(txt):
     return txt.replace(':', '_').replace('.', '_').replace('/', '_')
+
+def clean_url(url):
+    return urlparse.urlunsplit([urllib.quote(urllib.unquote(frag), safe='/=&+')
+                                for frag in urlparse.urlsplit(url)])
 
 class CleanerException(Exception):
     pass

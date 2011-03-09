@@ -133,13 +133,14 @@ class WebPage(object):
         if not data:
             data = open(self.get_path('content.orig')).read()
         import tidy
-        tidy_opts = { # http://tidy.sourceforge.net/docs/quickref.html#char-encoding
+        tidy_opts = { # http://tidy.sourceforge.net/docs/quickref.html
             "output-xhtml": True,
             "tidy-mark": False,
             "alt-text": "",
             "doctype": 'strict',
             "force-output": True,
             'clean':True,
+            'char-encoding': 'utf8',
             }
         data = tidy.parseString(data, **tidy_opts).__str__()
         data = unicode(data, 'utf-8', 'ignore') # FIXME: get the correct encoding!

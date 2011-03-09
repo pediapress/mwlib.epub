@@ -213,7 +213,8 @@ class EpubWriter(object):
             if img_fn:
                 zip_rel_path = os.path.join(config.img_rel_path, os.path.basename(img_fn))
                 img.attrib['src'] = zip_rel_path
-
+            else:
+                img.getparent().remove(img)
         #FIXME: fix paths of css and other resource files.
         #intra-collection links need to be detected and remapped as well
         for link in webpage.tree.findall('.//link'):

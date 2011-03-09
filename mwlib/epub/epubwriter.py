@@ -230,7 +230,6 @@ class EpubWriter(object):
                       )
 
         head = html.find('.//head')
-
         node_head = node.find('.//head')
         for head_content in node_head.iterchildren():
             head.append(head_content)

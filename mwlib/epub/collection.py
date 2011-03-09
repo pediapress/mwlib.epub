@@ -282,7 +282,20 @@ class Collection(object):
 
 def coll_from_zip(basedir, env):
 
-    if isinstance(env, basestring):       
+    def img_ext_correct(fn):
+        from PIL import Image
+        img = Image.open(fn)
+        fmt = '.' + img.format.lower()
+        name, ext = os.path.splitext(fn)
+        ext = ext.lower()
+        if ext == '.jpg':
+            ext = '.jpeg'
+        if fmt != ext:
+            return (False, name + fmt)
+        else:
+            return (True, fn)
+
+    if isinstance(env, basestring):
         from mwlib import wiki
         env = wiki.makewiki(env)
 
@@ -317,6 +330,10 @@ def coll_from_zip(basedir, env):
                     title = urlparse.unquote(title.encode('utf-8')).decode('utf-8')
                     fn = item.wiki.env.images.getDiskPath(title)
                     if fn:
+                        correct, new_fn = img_ext_correct(fn)
+                        if not correct:
+                            os.rename(fn, new_fn)
+                            fn = new_fn
                         wp.images[src] = fn
                         break
                 if not fn and title not in missing_images:

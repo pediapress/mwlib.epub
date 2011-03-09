@@ -132,6 +132,16 @@ class WebPage(object):
     def _get_parse_tree(self, data=None):
         if not data:
             data = open(self.get_path('content.orig')).read()
+        import tidy
+        tidy_opts = { # http://tidy.sourceforge.net/docs/quickref.html#char-encoding
+            "output-xhtml": True,
+            "tidy-mark": False,
+            "alt-text": "",
+            "doctype": 'strict',
+            "force-output": True,
+            'clean':True,
+            }
+        data = tidy.parseString(data, **tidy_opts).__str__()
         data = unicode(data, 'utf-8', 'ignore') # FIXME: get the correct encoding!
         root = etree.HTML(data) # FIXME: base_url?
         content_filter = self.config('content')

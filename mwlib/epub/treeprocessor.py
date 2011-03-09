@@ -4,6 +4,8 @@
 from StringIO import StringIO
 from lxml import etree
 
+def safe_xml_id(txt):
+    return txt.replace(':', '_').replace('.', '_').replace('/', '_')
 
 class CleanerException(Exception):
     pass
@@ -25,14 +27,39 @@ class TreeProcessor(object):
         pass
 
 
+    def _setTitle(self, article):
+        title_node = article.tree.find('.//title')
+        if not title_node:
+            title_node = etree.Element('title')
+        title_node.text = article.title
+        head_node = article.tree.find('.//head')
+        head_node.append(title_node)
+
+
+    def annotateNodes(self, article):
+        self._setTitle(article)
+
     def clean(self, article):
         self.sanitize(article)
+        self._removeInvalicAttributes(article)
         self.mapTags(article)
         self.removeNodesCustom(article)
         self.moveNodes(article)
         self.applyXSLT(article)
         self.removeTags(article.tree)
 
+
+    def _removeInvalicAttributes(self, article):
+        for node in article.tree.iter():
+            for attr_name, attr_val in node.items():
+		if attr_name in ['lang', 'align', 'clear']:
+		    del node.attrib[attr_name]
+		if attr_name == 'id':
+		    node.set('id', safe_xml_id(attr_val)) 
+                # if attr_val == '' and attr_name in ['class']:
+                #     del node.attrib[attr_name]
+                if attr_name == 'width' and node.tag in ['td', 'th']:
+                    del node.attrib[attr_name]
 
     def mapTags(self, article):
         tag_map = {'i': 'em',
@@ -42,7 +69,7 @@ class TreeProcessor(object):
         for node in article.tree.iter():
             if node.tag in tag_map_keys:
                 node.tag = tag_map[node.tag]
-
+                
 
     def sanitize(self, article):
         for node in article.tree.iter():

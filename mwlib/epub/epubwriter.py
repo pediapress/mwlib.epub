@@ -5,6 +5,8 @@ import os
 import shutil
 import zipfile
 import tempfile
+import mimetypes
+
 from pprint import pprint
 
 from collections import namedtuple
@@ -13,14 +15,15 @@ from lxml import etree
 from lxml.builder import ElementMaker
 
 from mwlib.epub import config
-from mwlib.epub.treeprocessor import TreeProcessor
+from mwlib.epub.treeprocessor import TreeProcessor, safe_xml_id
 from mwlib.epub.collection import coll_from_zip
 
 
 ArticleInfo = namedtuple('ArticleInfo', 'id path title')
 
 def serialize(f):
-    return lambda : etree.tostring(f(), pretty_print=True)    
+    return lambda : etree.tostring(f(), pretty_print=True)
+
 
 class EpubContainer(object):
 
@@ -44,11 +47,11 @@ class EpubContainer(object):
         self.added_files.add(fn)
 
     def link_file(self, fn, arcname, compression=True):
-        if fn in self.added_files:
+        if arcname in self.added_files:
             return
         compression_flag = zipfile.ZIP_DEFLATED if compression else zipfile.ZIP_STORED
         self.zf.write(fn, arcname, compression_flag)
-        self.added_files.add(fn)
+        self.added_files.add(arcname)
 
     def write_mime_type(self):
         fn = os.path.join(os.path.dirname(__file__), 'mimetype')
@@ -85,27 +88,31 @@ class EpubContainer(object):
                      )
 
         nav_map = E.navMap(*[E.navPoint({'id': article.id,
-                                         'playorder': str(idx)},
+                                         'playOrder': str(idx)},
                                         E.navLabel(E.text(article.title)),
                                         E.content(src=article.path)
                                         ) for (idx, article) in enumerate(self.articles)])
         tree.append(nav_map)
         xml = etree.tostring(tree, method='xml', encoding='utf-8',pretty_print=True, xml_declaration=True)
+
         self.add_file(config.ncx_fn, xml)
 
     def writeOPF(self):
         nsmap = {'dc': "http://purl.org/dc/elements/1.1/",
-                 'opf': "http://www.idpf.org/2007/opf/"}
+                 'opf': "http://www.idpf.org/2007/opf"}
         E = ElementMaker()
 
         def writeOPF_metadata():
             E = ElementMaker(nsmap=nsmap)
             DC = ElementMaker(namespace=nsmap['dc'])
-            author = self.coll.editor
-            tree = E.metadata(DC.title(self.coll.title),
-                              DC.creator(author,  # FIXME
-                                         {'{%s}role' % nsmap['opf']: 'aut',
-                                          '{%s}file-as' % nsmap['opf']: author}))
+            # author = self.coll.editor
+            tree = E.metadata(DC.identifier({'id':'bookid'}, 'bla'),
+                              DC.language('en'), # FIXME
+                              DC.title(self.coll.title or 'untitled'),
+                              # DC.creator(author,  # FIXME
+                              #            {'{%s}role' % nsmap['opf']: 'aut',
+                              #             '{%s}file-as' % nsmap['opf']: author})
+                              )
             return tree
 
         def writeOPF_manifest():
@@ -120,8 +127,20 @@ class EpubContainer(object):
             #FIXME add missing resources:
             # images
             # css
+            for fn in self.added_files:
+                if fn.startswith('OPS/'):
+                    fn = fn[4:]
+                mimetype, encoding = mimetypes.guess_type(fn)
+                if mimetype in ['text/css',
+                                'image/png',
+                                'image/jpeg']:
+                    tree.append(E.item({'id': safe_xml_id(fn),
+                                        'href': fn,
+                                        'media-type': mimetype}))
+
+
             return tree
-        
+
         def writeOPF_spine():
             tree = E.spine({'toc': 'ncx'},
                            *[E.itemref(idref=article.id)
@@ -130,7 +149,9 @@ class EpubContainer(object):
 
         tree = E.package({'version': "2.0",
                           'xmlns': nsmap['opf'],
-                         'unique-identifier': '42'}) # FIXME: use real bookid
+                          'unique-identifier': 'bookid'}) # FIXME: use real bookid
+
+
         tree.extend([writeOPF_metadata(),
                      writeOPF_manifest(),
                      writeOPF_spine()]
@@ -142,7 +163,7 @@ class EpubContainer(object):
     def addArticle(self, webpage):
         path = 'OPS/%s.xhtml' % webpage.id
         self.add_file(path, webpage.xml)
-        self.articles.append(ArticleInfo(id=webpage.id,
+        self.articles.append(ArticleInfo(id=safe_xml_id(webpage.id),
                                          path=os.path.basename(path),
                                          title=webpage.title))
 
@@ -180,6 +201,7 @@ class EpubWriter(object):
     def processWebpage(self, webpage):
         self.tree_processor = TreeProcessor()
         #self.tree_processor.getMetaInfo(webpage)
+        self.tree_processor.annotateNodes(webpage)
         self.tree_processor.clean(webpage)
         self.remapLinks(webpage)
         webpage.xml = self.serializeArticle(webpage.tree)
@@ -200,13 +222,23 @@ class EpubWriter(object):
     def serializeArticle(self, node):
         assert not node.find('.//body'), 'error: node contains BODY tag'
         E = ElementMaker()
+
         html = E.html({'xmlns':"http://www.w3.org/1999/xhtml"},
                       E.head(E.meta({'http-equiv':"Content-Type",
                                      'content': "application/xhtml+xml; charset=utf-8"})
                              ),
-                      E.body(node
-                             ),
                       )
+
+        head = html.find('.//head')
+
+        node_head = node.find('.//head')
+        for head_content in node_head.iterchildren():
+            head.append(head_content)
+        node_head.getparent().remove(node_head)
+
+        body = E.body()
+        html.append(body)
+        body.extend(node)
 
         xml = etree.tostring(html,
                              encoding='utf-8',

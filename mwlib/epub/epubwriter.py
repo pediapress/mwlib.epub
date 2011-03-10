@@ -89,7 +89,7 @@ class EpubContainer(object):
                      )
 
         nav_map = E.navMap(*[E.navPoint({'id': article.id,
-                                         'playOrder': str(idx)},
+                                         'playOrder': str(idx+1)},
                                         E.navLabel(E.text(article.title)),
                                         E.content(src=article.path)
                                         ) for (idx, article) in enumerate(self.articles)])

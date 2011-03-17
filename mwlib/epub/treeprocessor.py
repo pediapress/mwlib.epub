@@ -47,7 +47,7 @@ class TreeProcessor(object):
 
     def clean(self, article):
         self.sanitize(article)
-        self._removeInvalicAttributes(article)
+        self._removeInvalidAttributes(article)
         self.mapTags(article)
         self.removeNodesCustom(article)
         self.moveNodes(article)
@@ -55,13 +55,13 @@ class TreeProcessor(object):
         self.removeTags(article.tree)
 
 
-    def _removeInvalicAttributes(self, article):
+    def _removeInvalidAttributes(self, article):
         for node in article.tree.iter():
             for attr_name, attr_val in node.items():
-		if attr_name in ['lang', 'align', 'clear']:
-		    del node.attrib[attr_name]
-		if attr_name == 'id':
-		    node.set('id', safe_xml_id(attr_val)) 
+                if attr_name in ['lang', 'align', 'clear']:
+                    del node.attrib[attr_name]
+                if attr_name == 'id':
+                    node.set('id', safe_xml_id(attr_val))
                 # if attr_val == '' and attr_name in ['class']:
                 #     del node.attrib[attr_name]
                 if attr_name == 'width' and node.tag in ['td', 'th']:

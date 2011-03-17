@@ -111,9 +111,8 @@ html {
  }
 
 body {
-  font-size:12pt;
-  line-height:1.125em;
-  /* line-height: 1; */
+  font-size:100%;
+  line-height: 1.4;
   color: #000;
   background: #fff;
   font-family: sans-serif;
@@ -131,9 +130,7 @@ titleimage {
 }
 
 p, li, dl, #featured_article {
-  /* line-height: 1.65;  */
-  font-size: 100%;
-  color:blue;
+  font-size: 0.875em;
 }
 
 pre {

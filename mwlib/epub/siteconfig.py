@@ -9,26 +9,22 @@ import urlparse
 # remove_id: same as above for id's
 
 fallback = {'figure':{'container': '//*[@width>100]',
-		      'images': './/img[@width>(0.9*$cwidth) and @width<(1.1*$cwidth)]',
-		      'caption': './/*[not(descendant-or-self::img)]',
-		      },
-	    'content': '//div[@id="content"]',
-	    }
+                      'images': './/img[@width>(0.9*$cwidth) and @width<(1.1*$cwidth)]',
+                      'caption': './/*[not(descendant-or-self::img)]',
+                      },
+            'content': '//div[@id="content"]',
+            }
 
-default_config = {'http://wikipedia.org':{'remove_class':['editsection'],
-					  'xslt':'''
-<xsl:template match="//img[contains(@class,'tex')]">
- <math>
-   <xsl:value-of select="./@alt"/>
-  </math>
- </xsl:template>''',
-					  },
+default_config = {'http://wikipedia.org':{'remove_class':['editsection',
+                                                          'toc',
+                                                          ],
+                                          },
     }
 
 class SiteConfigHandler(object):
 
     def __init__(self, custom_siteconfig=None):
-	self.verbose = False
+        self.verbose = False
         self.siteconfig = default_config
         if custom_siteconfig:
             self.siteconfig.update(custom_siteconfig)
@@ -52,14 +48,14 @@ class SiteConfigHandler(object):
         return None
                 
     def get(self, url, key, default=None):
-	if url.startswith('file'):
-	    site = 'local'
-	else:
-	    site = self._getMatchingSite(url)
+        if url.startswith('file'):
+            site = 'local'
+        else:
+            site = self._getMatchingSite(url)
         if not site and self.verbose:
             print 'WARNING: no matching site in config for url: ', url
         res = self.siteconfig.get(site, {}).get(key) or fallback.get(key)
-	if res == None:
-	    return default
-	else:
-	    return res
+        if res == None:
+            return default
+        else:
+            return res

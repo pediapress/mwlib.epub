@@ -275,6 +275,7 @@ class EpubWriter(object):
 
 def writer(env, output,
            status_callback=None,
+           validate=True,
            ):
     if status_callback:
         status_callback(status='generating epubfile')
@@ -286,6 +287,15 @@ def writer(env, output,
     epub = EpubWriter(output, coll)
     epub.renderColl()
     shutil.rmtree(tmpdir)
+
+    if validate:
+        print 'VALIDATING EPUB'
+        import subprocess
+        p = subprocess.Popen(['epubcheck', output], stdout=subprocess.PIPE)
+        out = p.stdout.read()
+        res = p.wait()
+        print 'validation result:', res
+        print out
     print 'generated epub file'
 
 writer.description = 'epub Files'

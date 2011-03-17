@@ -21,6 +21,26 @@ default_config = {'http://wikipedia.org':{'remove_class':['editsection',
                                           },
     }
 
+
+_default_config = [
+    ('http://wikipedia.org',
+     {'remove_class':['editsection',
+                      'toc',
+                      ],
+      'remove':['//button'],
+      'transform':[{'context_node':'//center',
+                    'node':'.',
+                    'repl_node':'div',
+                    'repl_attrs':{'style':'text-align:center;'}
+                    },
+                   ],
+      }),
+    ]
+
+default_config = dict(_default_config)
+
+
+
 class SiteConfigHandler(object):
 
     def __init__(self, custom_siteconfig=None):

@@ -145,7 +145,7 @@ class WebPage(object):
     def _get_parse_tree(self, data=None):
         if not data:
             data = open(self.get_path('content.orig')).read()
-        data = self._tidy(data)
+        # data = self._tidy(data)
         data = unicode(data, 'utf-8', 'ignore') # FIXME: get the correct encoding!
         root = etree.HTML(data) # FIXME: base_url?
         content_filter = self.config('content')
@@ -324,6 +324,7 @@ def coll_from_zip(basedir, env):
         data = item.wiki.getHTML(title, item.revision)
 
         html = data['text']['*']
+        assert isinstance(title, unicode) and isinstance(html, unicode) and isinstance(url, unicode)
         html = '<div id="content"><h1>%s</h1>\n\n%s</div>' % (title.encode('utf-8'), html.encode('utf-8'))
 
         wp = WebPage(coll, title, url, user_agent='Mozilla/5.0') # images

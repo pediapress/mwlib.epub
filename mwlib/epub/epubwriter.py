@@ -232,7 +232,7 @@ class EpubWriter(object):
                     target_ids.append(target_id)
                 a.set('href', '#'+target_id)
             else:
-                url = clean_url(urlparse.urljoin(webpage.url.encode('utf-8'), href))
+                url = clean_url(urlparse.urljoin(webpage.url, href))
                 linked_wp = webpage.coll.url2webpage.get(url)
                 if linked_wp:
                     a.set('href', linked_wp.id + '.xhtml')

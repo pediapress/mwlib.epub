@@ -11,7 +11,7 @@ def safe_xml_id(txt):
 
 def clean_url(url):
     return urlparse.urlunsplit([urllib.quote(urllib.unquote(frag), safe='/=&+')
-                                for frag in urlparse.urlsplit(url)])
+                                for frag in urlparse.urlsplit(url.encode('utf-8'))]).decode('utf-8')
 
 class CleanerException(Exception):
     pass
@@ -49,7 +49,8 @@ class TreeProcessor(object):
         self.sanitize(article)
         self._removeInvalidAttributes(article)
         self.mapTags(article)
-        self.removeNodesCustom(article)
+        self.transformNodes(article)
+        self.removeNodes(article)
         self.moveNodes(article)
         self.applyXSLT(article)
         self.removeTags(article.tree)
@@ -75,7 +76,7 @@ class TreeProcessor(object):
         for node in article.tree.iter():
             if node.tag in tag_map_keys:
                 node.tag = tag_map[node.tag]
-                
+
 
     def sanitize(self, article):
         for node in article.tree.iter():
@@ -115,7 +116,26 @@ class TreeProcessor(object):
                 if target_node:
                     target_node[0].addnext(source_node)
 
-    def removeNodesCustom(self, article):
+    def transformNodes(self, article):
+        queries = article.config('transform')
+        if not queries:
+            return
+        #for root_query, node_query, new_node_type in queries:
+        for query in queries:
+            for root in article.tree.xpath(query['context_node']):
+                node = root.xpath(query['node'])
+                if len(node) == 1:
+                    node = node[0]
+                    p = root.getparent()
+                    if p:
+                        children = node.getchildren()
+                        new = etree.Element(query['repl_node'], **query['repl_attrs'])
+                        new.extend(children)
+                        new.text = node.text
+                        new.tail = node.tail
+                        p.replace(root, new)
+
+    def removeNodes(self, article):
         queries = article.config('remove', [])
         for klass in article.config('remove_class', []):
             queries.append('.//*[contains(@class, "{0}")]'.format(klass))

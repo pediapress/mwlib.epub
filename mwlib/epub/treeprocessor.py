@@ -54,7 +54,20 @@ class TreeProcessor(object):
         self.moveNodes(article)
         self.applyXSLT(article)
         self.removeTags(article.tree)
+        self.makeValidXhtml(article)
 
+
+    def _removeDuplicateIDs(self, article):
+        seen_ids = set()
+        for node in article.tree.xpath('//*[@id]'):
+            _id = node.get('id')
+            while _id in seen_ids:
+                _id += 'x'
+                node.set('id', _id)
+            seen_ids.add(_id)
+
+    def makeValidXhtml(self, article):
+        self._removeDuplicateIDs(article)
 
     def _removeInvalidAttributes(self, article):
         for node in article.tree.iter():
@@ -127,7 +140,7 @@ class TreeProcessor(object):
                 if len(node) == 1:
                     node = node[0]
                     p = root.getparent()
-                    if p:
+                    if len(p):
                         children = node.getchildren()
                         new = etree.Element(query['repl_node'], **query['repl_attrs'])
                         new.extend(children)

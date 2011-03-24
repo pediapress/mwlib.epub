@@ -1,9 +1,12 @@
 #! /usr/bin/env python
 #! -*- coding:utf-8 -*-
 
+import os
 from StringIO import StringIO
 import urlparse
 import urllib
+import re
+import json
 from lxml import etree
 
 def safe_xml_id(txt):
@@ -12,6 +15,21 @@ def safe_xml_id(txt):
 def clean_url(url):
     return urlparse.urlunsplit([urllib.quote(urllib.unquote(frag), safe='/=&+')
                                 for frag in urlparse.urlsplit(url.encode('utf-8'))]).decode('utf-8')
+
+def remove_node(node):
+    '''remove node but keep tail if present'''
+    parent = node.getparent()
+    assert len(parent)
+    if not node.tail:
+        parent.remove(node)
+        return
+    prev = node.getprevious() or parent
+    if len(prev):
+        if prev.tail:
+            prev.tail += node.tail
+        else:
+            prev.tail = node.tail
+        parent.remove(node)
 
 class CleanerException(Exception):
     pass
@@ -47,19 +65,27 @@ class TreeProcessor(object):
 
     def clean(self, article):
         self.sanitize(article)
-        self._removeInvalidAttributes(article)
         self.mapTags(article)
         self.transformNodes(article)
         self.removeNodes(article)
         self.moveNodes(article)
         self.applyXSLT(article)
-        self.removeTags(article.tree)
+        self.removeTags(article)
+        self.removeInvisible(article)
         self.makeValidXhtml(article)
 
+    def removeInvisible(self, article):
+        for node in article.tree.iter():
+            style = node.get('style')
+            if style:
+                style = style.lower()
+                if re.match('display *: *none', style):
+                    remove_node(node)
 
-    def _removeDuplicateIDs(self, article):
+    def _fixIDs(self, article):
         seen_ids = set()
         for node in article.tree.xpath('//*[@id]'):
+            node.set('id', safe_xml_id(node.get('id')))
             _id = node.get('id')
             while _id in seen_ids:
                 _id += 'x'
@@ -67,19 +93,30 @@ class TreeProcessor(object):
             seen_ids.add(_id)
 
     def makeValidXhtml(self, article):
-        self._removeDuplicateIDs(article)
+        self._fixIDs(article)
+        self._filterTags(article)
 
-    def _removeInvalidAttributes(self, article):
+    def _filterTags(self, article):
+        no_check = ['article']
+        fn = os.path.join(os.path.dirname(__file__), 'tag2attr.json') # from: utils/make_tag_attr_list.py
+        tag2attrs = json.load(open(fn))
+        delete = []
         for node in article.tree.iter():
+            if node.tag in no_check:
+                continue
+            if node.tag not in tag2attrs:
+                print 'DELETING NODE', node.tag, node.items()
+                delete.append(node)
+                continue
+            allowed_attrs = tag2attrs.get(node.tag)
             for attr_name, attr_val in node.items():
-                if attr_name in ['lang', 'align', 'clear']:
+                if attr_name not in allowed_attrs or \
+                       (attr_val == '' and attr_name not in ['alt']):
                     del node.attrib[attr_name]
-                if attr_name == 'id':
-                    node.set('id', safe_xml_id(attr_val))
-                # if attr_val == '' and attr_name in ['class']:
-                #     del node.attrib[attr_name]
-                if attr_name == 'width' and node.tag in ['td', 'th']:
-                    del node.attrib[attr_name]
+
+        for node in delete:
+            remove_node(node)
+
 
     def mapTags(self, article):
         tag_map = {'i': 'em',
@@ -156,9 +193,7 @@ class TreeProcessor(object):
             queries.append('.//*[contains(@id, "{0}")]'.format(id))
         for query in queries:
             for node in article.tree.xpath(query):
-                p = node.getparent()
-                if len(p):
-                    p.remove(node)
+                remove_node(node)
 
     def applyXSLT(self, article):
         xslt_frag = article.config('xslt')
@@ -170,14 +205,7 @@ class TreeProcessor(object):
         article.tree = transform(article.tree).getroot()
 
 
-    def removeTags(self, root):
+    def removeTags(self, article):
         for node_type in self.tag_blacklist:
-            for node in root.iter(tag=node_type):
-                node.getparent().remove(node)
-                # FIXME: handle tail text
-    
-        #     # if c.tail:
-        #     #         prev = c.getprevious()
-        #     #         prev_tail = prev.tail or ''
-        #     #         prev.tail = prev_tail + c.tail
-        #     node.remove(c)
+            for node in article.tree.iter(tag=node_type):
+                remove_node(node)

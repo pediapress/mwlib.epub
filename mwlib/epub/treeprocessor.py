@@ -33,6 +33,7 @@ def remove_node(node):
         return
     parent.text = parent.text or ''
     parent.text += node.tail
+    parent.remove(node)
 
 class CleanerException(Exception):
     pass
@@ -78,12 +79,15 @@ class TreeProcessor(object):
         self.makeValidXhtml(article)
 
     def removeInvisible(self, article):
+        delete = []
         for node in article.tree.iter():
             style = node.get('style')
             if style:
                 style = style.lower()
                 if re.match('display *: *none', style):
-                    remove_node(node)
+                    delete.append(node)
+        for node in delete:
+            remove_node(node)
 
     def _fixIDs(self, article):
         seen_ids = set()

@@ -15,13 +15,6 @@ fallback = {'figure':{'container': '//*[@width>100]',
             'content': '//div[@id="content"]',
             }
 
-default_config = {'http://wikipedia.org':{'remove_class':['editsection',
-                                                          'toc',
-                                                          ],
-                                          },
-    }
-
-
 _default_config = [
     ('http://wikipedia.org',
      {'remove_class':['editsection',

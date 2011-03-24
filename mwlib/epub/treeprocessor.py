@@ -23,13 +23,16 @@ def remove_node(node):
     if not node.tail:
         parent.remove(node)
         return
-    prev = node.getprevious() or parent
-    if len(prev):
+    prev = node.getprevious()
+    if prev is not None:
         if prev.tail:
             prev.tail += node.tail
         else:
             prev.tail = node.tail
         parent.remove(node)
+        return
+    parent.text = parent.text or ''
+    parent.text += node.tail
 
 class CleanerException(Exception):
     pass

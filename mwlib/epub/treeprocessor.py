@@ -76,7 +76,30 @@ class TreeProcessor(object):
         self.applyXSLT(article)
         self.removeTags(article)
         self.removeInvisible(article)
+        self.clearStyles(article)
         self.makeValidXhtml(article)
+
+
+    def clearStyles(self, article):
+        clear_font_size = re.compile('font-size *:.*?(;|$)')
+        clear_table_width = re.compile('width *:.*?(;|$)')
+
+        for node in article.tree.xpath('//*[@style]'):
+            style = node.get('style')
+            new_style = re.sub(clear_font_size, '', style)
+            if new_style != style:
+                node.set('style', new_style)
+
+            # FIXME: hack to allow full width image captions
+            if node.get('class') == 'thumbinner' and node.get('style'):
+                del node.attrib['style']
+
+            if node.tag == 'table' and node.get('style'):
+                style = node.get('style')
+                no_width = re.sub(clear_table_width, '', style)
+                if no_width != style:
+                    node.set('style', no_width)
+
 
     def removeInvisible(self, article):
         delete = []

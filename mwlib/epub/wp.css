@@ -1,8 +1,12 @@
 table {
   border-spacing: 0 !important;
-  width: 100%;
+  /* width: 100%; */
   border-collapse: collapse !important;
   border: 1px solid #ccc;
+  font-size: 0.75em;
+  margin-right: auto;
+  margin-left: auto;
+}
 }
 
 table td, table th {
@@ -22,7 +26,8 @@ table.toc h2 {
   padding: 0;}
 
 table.navbox {
-  width: 100% !important; }
+  /* width: 100% !important;  */
+}
 
 table.navbox th.navbox-title {
   background: #CCCCFF;
@@ -59,9 +64,10 @@ table.wikitable th {
   background: #f3f3f3; }
 
 table[style] {
-  width: 100% !important;
+  /* width: 100% !important; */
   float: none !important;
-  margin-left: 0 !important; }
+  /* margin-left: 0 !important;  */
+}
 
 table.infobox {
   background: #f9f9f9; }
@@ -208,6 +214,23 @@ a.back_to_top, a.back_to_top:visited {
   font-size: 0.75em;
 }
 
+.thumbcaption { 
+  width: 75%;
+  font-size: 0.75em;
+  font-style: italic;
+}
+
+.thumbinner { 
+  display: inline-block;
+  border: 1px solid #ccc;
+  padding: 4px;
+}
+
+.thumb { 
+  border:0;
+  background:0;
+}
+
 img.thumbborder {
   border: 1px solid #ccc; }
 
@@ -249,3 +272,10 @@ span.citation:target, cite:target {
 button.section_heading.hide {
   display: none; }
 
+.reflist { 
+  font-size: 0.75em;
+}
+
+dt { 
+  font-weight:bold;
+}

@@ -9,8 +9,14 @@ import re
 import json
 from lxml import etree
 
-def safe_xml_id(txt):
-    return txt.replace(':', '_').replace('.', '_').replace('/', '_')
+def safe_xml(txt, mode='id'):
+    txt = txt.replace(':', '_').replace('.', '_').replace('/', '_').replace(';', '_')
+    if mode == 'id':
+        txt = re.sub('(\d)', lambda n: chr(97 + int(n.groups()[0])), txt)
+    return txt
+
+def safe_xml_id(args, **kwargs):
+    return safe_xml(args, kwargs)
 
 def clean_url(url):
     return urlparse.urlunsplit([urllib.quote(urllib.unquote(frag), safe='/=&+')
@@ -115,21 +121,29 @@ class TreeProcessor(object):
     def _fixIDs(self, article):
         seen_ids = set()
         for node in article.tree.xpath('//*[@id]'):
-            node.set('id', safe_xml_id(node.get('id')))
+            node.set('id', safe_xml(node.get('id'), mode='id'))
             _id = node.get('id')
             while _id in seen_ids:
                 _id += 'x'
                 node.set('id', _id)
             seen_ids.add(_id)
 
+    def _fixClasses(self, article):
+        for node in article.tree.xpath('//*[@class]'):
+            node.set('class', safe_xml(node.get('class'), mode='class'))
+
     def makeValidXhtml(self, article):
         self._fixIDs(article)
+        self._fixClasses(article)
         self._filterTags(article)
 
     def _filterTags(self, article):
         no_check = ['article']
         fn = os.path.join(os.path.dirname(__file__), 'tag2attr.json') # from: utils/make_tag_attr_list.py
         tag2attrs = json.load(open(fn))
+        fn = os.path.join(os.path.dirname(__file__), 'tag2attr_custom.json') # handcrafted. additional stuff we want to include
+        tag2attrs_custom = json.load(open(fn))
+        tag2attrs.update(tag2attrs_custom)
         delete = []
         for node in article.tree.iter():
             if node.tag in no_check:

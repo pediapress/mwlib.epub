@@ -141,9 +141,9 @@ class TreeProcessor(object):
         no_check = ['article']
         fn = os.path.join(os.path.dirname(__file__), 'tag2attr.json') # from: utils/make_tag_attr_list.py
         tag2attrs = json.load(open(fn))
-        fn = os.path.join(os.path.dirname(__file__), 'tag2attr_custom.json') # handcrafted. additional stuff we want to include
-        tag2attrs_custom = json.load(open(fn))
-        tag2attrs.update(tag2attrs_custom)
+        # fn = os.path.join(os.path.dirname(__file__), 'tag2attr_custom.json') # handcrafted. additional stuff we want to include
+        # tag2attrs_custom = json.load(open(fn))
+        # tag2attrs.update(tag2attrs_custom)
         delete = []
         for node in article.tree.iter():
             if node.tag in no_check:

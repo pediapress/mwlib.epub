@@ -4,9 +4,10 @@
 import os
 import urllib
 import json
+import re
 from lxml import etree
 
-def fetch(url='http://www.webpelican.com/web-tutorials/xhtml-1-1-tutorial/'):
+def fetch(url):
     data_fn = 'data.html'
 
     if not os.path.exists(data_fn):
@@ -20,31 +21,36 @@ def fetch(url='http://www.webpelican.com/web-tutorials/xhtml-1-1-tutorial/'):
     print 'got data'
     return etree.HTML(data)
 
-def fix(tag2attrs):
-    td = tag2attrs['td']
-    td.append('class')
-    tag2attrs['td'] = td
 
-def parse(html):
+def parseW3C(html):
     tag2attrs = {}
-    tables = html.xpath('//table')
-    for table in tables:
-        if any(ancestor.tag == 'table' for ancestor in table.iterancestors()):
+    repl_map = {'common': ['xml:space', 'class', 'id', 'title', 'dir', 'xml:lang', 'style'],
+                'core': ['xml:space', 'class', 'id', 'title'],
+                'i18n': ['dir', 'xml:lang'],
+                }
+
+    for row in html.xpath('//table//tbody//tr'):
+        # module = row.xpath('./preceding::h3|./preceding::h2')
+        # if module:
+        #     module_name = module[-1].text.split(' ', 1)[-1]
+
+        node_name = row.xpath('./td[position()=1]')[0].text
+        if not node_name or '&' in node_name:
             continue
-        for row in table.xpath('./tbody/tr'):
-            tags = row.xpath('./td[position()=1]/text()')
-            attrs = row.xpath('./td[position()=2]/text()')
-            if tags and attrs:
-                for tag in tags:
-                    tag = tag.replace('<', '').replace('>', '').replace('/', '').strip()
-                    attrs = [attr.replace(' ', '').strip() for attr in attrs]
-                    tag2attrs[tag]=attrs
-    fix(tag2attrs)
-    open('tag2attr.json', 'w').write(json.dumps(tag2attrs))
+        attributes = ''.join(x for x in row.xpath('./td[position()=2]')[0].itertext())
+        attributes = re.sub('\(.*?\)|\*', '', attributes.replace('\n', ''))
+        attributes = set(x.strip().lower() for x in re.split(',| ', attributes) if x)
+        for abbrev, full in repl_map.items():
+            if abbrev in attributes:
+                attributes.remove(abbrev)
+                attributes.update(full)
+        tag2attrs[node_name] = list(attributes)
+
+    open('tag2attr.json', 'w').write(json.dumps(tag2attrs, indent=4))
 
 def doit():
-    html = fetch()
-    parse(html)
+    html = fetch(url='http://www.w3.org/TR/xhtml-modularization/abstract_modules.html')
+    parseW3C(html)
 
 if __name__ == '__main__':
     doit()

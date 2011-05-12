@@ -9,6 +9,9 @@ import re
 import json
 from lxml import etree
 
+# Source of list: http://idpf.org/epub/20/spec/OPS_2.0.1_draft.htm#Section2.2.1
+allowed_tags = 'body, head, html, title, abbr, acronym, address, blockquote, br, cite, code, dfn, div, em, h1, h2, h3, h4, h5, h6, kbd, p, pre, q, samp, span, strong, var, a, dl, dt, dd, ol, ul, li, object, param, b, big, hr, i, small, sub, sup, tt, del, ins, bdo, caption, col, colgroup, table, tbody, td, tfoot, th, thead, tr, img, area, map, meta, style, link, base'.split(', ')
+
 def safe_xml(txt, mode='id'):
     txt = txt.replace(':', '_').replace('.', '_').replace('/', '_').replace(';', '_')
     if mode == 'id':
@@ -24,6 +27,7 @@ def clean_url(url):
 
 def remove_node(node):
     '''remove node but keep tail if present'''
+
     parent = node.getparent()
     assert len(parent)
     if not node.tail:
@@ -45,8 +49,6 @@ class CleanerException(Exception):
     pass
 
 class TreeProcessor(object):
-
-    tag_blacklist = 'script embed object param style'.split()
 
     xslt_head = '<xsl:transform version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">'
     xslt_foot = '''
@@ -80,7 +82,6 @@ class TreeProcessor(object):
         self.removeNodes(article)
         self.moveNodes(article)
         self.applyXSLT(article)
-        self.removeTags(article)
         self.removeInvisible(article)
         self.clearStyles(article)
         self.makeValidXhtml(article)
@@ -136,30 +137,48 @@ class TreeProcessor(object):
         self._fixIDs(article)
         self._fixClasses(article)
         self._filterTags(article)
+        self._transformInvalidTags(article)
+        self._removeInvalidTags(article)
+
+    def _transformInvalidTags(self, article):
+        '''Transform tags invalid in an epubs to something that makes sense if possible'''
+
+        # <u> -> <span style="text-decoration:underline;">
+        # font
+
+        queries = [{'context_node':'//center', # <center> -> <div style="text-align:center;">
+                    'node':'.',
+                    'repl_node':'div',
+                    'repl_attrs':{'style':'text-align:center;'}
+                    },
+                    ]
+
+        self.transformNodes(article, custom_queries=queries)
+
+
+    def _removeInvalidTags(self, article):
+        types_removed = set()
+        for node in article.tree.xpath('//*[@invalid]'):
+            remove_node(node)
+            types_removed.add(node.tag)
+        if types_removed:
+            print 'INVALID IN EPUB - NODE TYPES REMOVED', types_removed
 
     def _filterTags(self, article):
         no_check = ['article']
         fn = os.path.join(os.path.dirname(__file__), 'tag2attr.json') # from: utils/make_tag_attr_list.py
         tag2attrs = json.load(open(fn))
-        # fn = os.path.join(os.path.dirname(__file__), 'tag2attr_custom.json') # handcrafted. additional stuff we want to include
-        # tag2attrs_custom = json.load(open(fn))
-        # tag2attrs.update(tag2attrs_custom)
-        delete = []
-        for node in article.tree.iter():
+        for node in article.tree.iter(tag=etree.Element):
             if node.tag in no_check:
                 continue
-            if node.tag not in tag2attrs:
-                print 'DELETING NODE', node.tag, node.items()
-                delete.append(node)
+            if node.tag not in allowed_tags:
+                node.set('invalid', '1')
                 continue
             allowed_attrs = tag2attrs.get(node.tag)
             for attr_name, attr_val in node.items():
                 if attr_name not in allowed_attrs or \
                        (attr_val == '' and attr_name not in ['alt']):
                     del node.attrib[attr_name]
-
-        for node in delete:
-            remove_node(node)
 
 
     def mapTags(self, article):
@@ -210,8 +229,8 @@ class TreeProcessor(object):
                 if target_node:
                     target_node[0].addnext(source_node)
 
-    def transformNodes(self, article):
-        queries = article.config('transform')
+    def transformNodes(self, article, custom_queries=[]):
+        queries = custom_queries or article.config('transform')
         if not queries:
             return
         #for root_query, node_query, new_node_type in queries:
@@ -247,9 +266,3 @@ class TreeProcessor(object):
         xslt_doc = etree.parse(StringIO(xslt_query))
         transform = etree.XSLT(xslt_doc)
         article.tree = transform(article.tree).getroot()
-
-
-    def removeTags(self, article):
-        for node_type in self.tag_blacklist:
-            for node in article.tree.iter(tag=node_type):
-                remove_node(node)

@@ -20,13 +20,8 @@ _default_config = [
      {'remove_class':['editsection',
                       'toc',
                       ],
-      'remove':['//button'],
-      'transform':[{'context_node':'//center',
-                    'node':'.',
-                    'repl_node':'div',
-                    'repl_attrs':{'style':'text-align:center;'}
-                    },
-                   ],
+      'remove':['//button',
+                'noprint'],
       }),
     ]
 

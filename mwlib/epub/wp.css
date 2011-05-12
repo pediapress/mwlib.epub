@@ -160,8 +160,6 @@ a {
     color: #5a3696; }
   a:active {
     color: #faa700; }
-  a:hover {
-    text-decoration: underline; }
 
 a.new, a.new:visited, a.new:hover {
   color: red; }

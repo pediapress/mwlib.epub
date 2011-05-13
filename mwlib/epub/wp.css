@@ -219,7 +219,7 @@ a.back_to_top, a.back_to_top:visited {
 }
 
 .thumbinner { 
-  display: inline-block;
+  /* display: inline-block; */
   border: 1px solid #ccc;
   padding: 4px;
 }
@@ -276,4 +276,23 @@ button.section_heading.hide {
 
 dt { 
   font-weight:bold;
+}
+
+li.gallerybox{vertical-align:top;background-color:#f9f9f9;border:solid 2px white;display:-moz-inline-box}
+
+ul.gallery,li.gallerybox{display:inline-block;zoom:1;*display:inline}
+
+ul.gallery{margin:2px;padding:2px;background-color:white;display:block}
+
+li.gallerycaption{font-weight:bold;text-align:center;display:block;word-wrap:break-word}
+
+li.gallerybox div.thumb{text-align:center;border:1px solid #ccc;margin:2px}
+
+div.gallerytext{overflow:hidden;font-size:93%;padding:2px 4px;word-wrap:break-word}
+
+
+h1, h2, h3, h4 {
+  color: red;
+  background-color: grey;
+  border: 2px solid green;
 }

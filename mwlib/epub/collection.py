@@ -286,7 +286,8 @@ class Collection(object):
 
     def append(self, wp):
         self.outline.append(wp)
-        self.url2webpage[wp.canonical_url] = wp
+        if isinstance(wp, WebPage):
+            self.url2webpage[wp.canonical_url] = wp
 
 def coll_from_zip(basedir, env):
 
@@ -315,7 +316,8 @@ def coll_from_zip(basedir, env):
     missing_images = []
     for item in env.metabook.walk():
         if item.type == 'chapter':
-            print 'skipping chapter', item.title.encode('utf-8')
+            chapter = Chapter(item.title)
+            coll.append(chapter)
             continue
 
         title = item.title

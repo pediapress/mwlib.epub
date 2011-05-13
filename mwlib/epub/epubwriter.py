@@ -17,10 +17,10 @@ from lxml.builder import ElementMaker
 
 from mwlib.epub import config
 from mwlib.epub.treeprocessor import TreeProcessor, safe_xml_id, clean_url
-from mwlib.epub.collection import coll_from_zip
+from mwlib.epub import collection
 
 
-ArticleInfo = namedtuple('ArticleInfo', 'id path title')
+ArticleInfo = namedtuple('ArticleInfo', 'id path title type')
 
 def serialize(f):
     return lambda : etree.tostring(f(), pretty_print=True)
@@ -88,11 +88,21 @@ class EpubContainer(object):
                      E.docAuthor(E.text(self.coll.editor)),
                      )
 
-        nav_map = E.navMap(*[E.navPoint({'id': article.id,
-                                         'playOrder': str(idx+1)},
-                                        E.navLabel(E.text(article.title)),
-                                        E.content(src=article.path)
-                                        ) for (idx, article) in enumerate(self.articles)])
+
+        nav_map = E.navMap()
+        last_chapter = None
+        for (idx, article) in enumerate(self.articles):
+            nav_point = E.navPoint({'id': article.id,
+                                    'playOrder': str(idx+1)},
+                                   E.navLabel(E.text(article.title)),
+                                   E.content(src=article.path))
+            if article.type == 'article' and last_chapter != None:
+                last_chapter.append(nav_point)
+                continue
+            if article.type == 'chapter':
+                last_chapter = nav_point
+            nav_map.append(nav_point)
+
         tree.append(nav_map)
         xml = etree.tostring(tree, method='xml', encoding='utf-8',pretty_print=True, xml_declaration=True)
 
@@ -168,7 +178,11 @@ class EpubContainer(object):
         self.add_file(path, webpage.xml)
         self.articles.append(ArticleInfo(id=safe_xml_id(webpage.id),
                                          path=os.path.basename(path),
-                                         title=webpage.title))
+                                         title=webpage.title,
+                                         type='article' if isinstance(webpage, collection.WebPage) else 'chapter'))
+
+        if isinstance(webpage, collection.Chapter):
+            return
 
         for img_src, img_fn in webpage.images.items():
             zip_fn = os.path.join(config.img_abs_path, os.path.basename(img_fn))
@@ -196,9 +210,26 @@ class EpubWriter(object):
     def renderColl(self):
         self.initContainer()
         for lvl, webpage in self.coll.outline.walk():
-            self.processWebpage(webpage)
+            if isinstance(webpage, collection.WebPage):
+                self.processWebpage(webpage)
+            elif isinstance(webpage, collection.Chapter):
+                self.processChapter(webpage)
 
         self.closeContainer()
+
+    def processChapter(self, chapter):
+        self.num_chapters = getattr(self, 'num_chapters', 0) + 1
+        chapter.id = 'chapter_%02d' % self.num_chapters
+        chapter.xml = '''<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title>%(title)s</title></head>
+<body><h1 style="margin-top:5em;font-size:300%%;text-align:center;">%(title)s</h1></body>
+</html>
+        ''' % dict(title=chapter.title)
+
+        self.container.addArticle(chapter)
+
 
     def processWebpage(self, webpage):
         self.tree_processor = TreeProcessor()
@@ -282,7 +313,7 @@ def writer(env, output,
 
     tmpdir = tempfile.mkdtemp()
     zipfn = env
-    coll = coll_from_zip(tmpdir, zipfn)
+    coll = collection.coll_from_zip(tmpdir, zipfn)
 
     epub = EpubWriter(output, coll)
     epub.renderColl()

@@ -181,15 +181,14 @@ class EpubContainer(object):
                                          title=webpage.title,
                                          type='article' if isinstance(webpage, collection.WebPage) else 'chapter'))
 
-        if isinstance(webpage, collection.Chapter):
-            return
+        if getattr(webpage, 'images', False) != False:
+            for img_src, img_fn in webpage.images.items():
+                zip_fn = os.path.join(config.img_abs_path, os.path.basename(img_fn))
+                self.link_file(img_fn, zip_fn, compression=False)
 
-        for img_src, img_fn in webpage.images.items():
-            zip_fn = os.path.join(config.img_abs_path, os.path.basename(img_fn))
-            self.link_file(img_fn, zip_fn, compression=False)
-
-        css_fn = webpage.tree.get('css_fn')
-        self.link_file(css_fn, 'OPS/wp.css') # fixme proper name
+        if getattr(webpage, 'tree', False) != False:
+            css_fn = webpage.tree.get('css_fn')
+            self.link_file(css_fn, 'OPS/wp.css') # fixme proper name
 
 class EpubWriter(object):
 
@@ -209,6 +208,7 @@ class EpubWriter(object):
 
     def renderColl(self):
         self.initContainer()
+        self.processTitlePage()
         for lvl, webpage in self.coll.outline.walk():
             if isinstance(webpage, collection.WebPage):
                 self.processWebpage(webpage)
@@ -216,6 +216,31 @@ class EpubWriter(object):
                 self.processChapter(webpage)
 
         self.closeContainer()
+
+    def processTitlePage(self):
+        titlepage = collection.Chapter(self.coll.title)
+        titlepage.id = 'titlepage'
+        titlepage.images = {}
+        # titlepage.images['title.png'] = os.path.join(os.path.dirname(__file__), 'title.png')
+        titlepage.xml = '''<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title>%(title)s</title></head>
+<body>
+
+<!-- <div><img src="images/title.png" width="600" alt="" /></div> -->
+
+
+<h1 style="margin-top:5em;font-size:300%%;text-align:center;">%(title)s</h1>
+<h2 style="margin-top:1em;font-size:200%%;text-align:center;">%(subtitle)s</h2>
+<h3 style="margin-top:1em;font-size:100%%;text-align:center;">%(editor)s</h3>
+
+</body>
+</html>
+        ''' % dict(title=self.coll.title,
+                   subtitle=self.coll.subtitle,
+                   editor=self.coll.editor,)
+        self.container.addArticle(titlepage)
 
     def processChapter(self, chapter):
         self.num_chapters = getattr(self, 'num_chapters', 0) + 1

@@ -19,9 +19,9 @@ _default_config = [
     ('http://wikipedia.org',
      {'remove_class':['editsection',
                       'toc',
+                      'noprint',
                       ],
-      'remove':['//button',
-                'noprint'],
+      'remove':[],
       }),
     ]
 

@@ -20,6 +20,7 @@ _default_config = [
      {'remove_class':['editsection',
                       'toc',
                       'noprint',
+                      'dablink',
                       ],
       'remove':[],
       }),

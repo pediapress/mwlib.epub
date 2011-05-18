@@ -330,7 +330,8 @@ def coll_from_zip(basedir, env):
         html = '<div id="content"><h1>%s</h1>\n\n%s</div>' % (title.encode('utf-8'), html.encode('utf-8'))
 
         wp = WebPage(coll, title, url, user_agent='Mozilla/5.0') # images
-        wp.canonical_url = urlparse.urljoin(item._env.wiki.siteinfo['general']['base'], title.replace(' ', '_'))
+        wp.canonical_url = urlparse.urljoin(item._env.wiki.siteinfo['general']['base'], urllib2.quote(title.replace(' ', '_')))
+
         open(wp.get_path('content.orig'), 'wb').write(html)
         wp.tree = wp._get_parse_tree(html)
 

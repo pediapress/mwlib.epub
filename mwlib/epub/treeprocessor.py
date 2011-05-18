@@ -18,8 +18,8 @@ def safe_xml(txt, mode='id'):
         txt = re.sub('(\d)', lambda n: chr(97 + int(n.groups()[0])), txt)
     return txt
 
-def safe_xml_id(args, **kwargs):
-    return safe_xml(args, kwargs)
+def safe_xml_id(txt):
+    return safe_xml(txt, mode='id')
 
 def clean_url(url):
     return urlparse.urlunsplit([urllib.quote(urllib.unquote(frag), safe='/=&+')

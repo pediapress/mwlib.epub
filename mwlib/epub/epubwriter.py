@@ -233,7 +233,7 @@ class EpubWriter(object):
 <!-- <div><img src="images/title.png" width="600" alt="" /></div> -->
 
 
-<h1 style="margin-top:5em;font-size:300%%;text-align:center;">%(title)s</h1>
+<h1 style="margin-top:20%%;font-size:300%%;text-align:center;">%(title)s</h1>
 <h2 style="margin-top:1em;font-size:200%%;text-align:center;">%(subtitle)s</h2>
 <h3 style="margin-top:1em;font-size:100%%;text-align:center;">%(editor)s</h3>
 
@@ -251,7 +251,7 @@ class EpubWriter(object):
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head><title>%(title)s</title></head>
-<body><h1 style="margin-top:5em;font-size:300%%;text-align:center;">%(title)s</h1></body>
+<body><h1 style="margin-top:15%%;font-size:300%%;text-align:center;">%(title)s</h1></body>
 </html>
         ''' % dict(title=chapter.title)
 

@@ -7,6 +7,7 @@ import zipfile
 import tempfile
 import mimetypes
 import urlparse
+import subprocess
 
 from pprint import pprint
 
@@ -196,6 +197,7 @@ class EpubWriter(object):
         self.output = output
         self.target_dir = os.path.dirname(output)
         self.coll = coll
+        self.scaled_images = {}
 
     def initContainer(self):
         if not os.path.exists(self.target_dir):
@@ -265,8 +267,27 @@ class EpubWriter(object):
         webpage.xml = self.serializeArticle(webpage.tree)
         self.container.addArticle(webpage)
 
+    def limit_size(self, webpage, img):
+        width = int(img.get('width') or '0')
+        src = img.attrib['src']
+        if width and src not in self.scaled_images:
+            fn = webpage.images.get(src)
+            if not fn:
+                return
+            target_fn = '%s_small%s' % (fn, os.path.splitext(fn)[1])
+            cmd = ['convert',
+                   fn,
+                   '-resize', '%d' % width,
+                   target_fn,
+                   ]
+            err = subprocess.call(cmd)
+            if not err:
+                webpage.images[src] = target_fn
+                self.scaled_images[src] = True
+
     def remapLinks(self, webpage):
         for img in webpage.tree.findall('.//img'):
+            self.limit_size(webpage, img)
             img_fn = webpage.images.get(img.attrib['src'])
             if img_fn:
                 zip_rel_path = os.path.join(config.img_rel_path, os.path.basename(img_fn))

@@ -251,11 +251,11 @@ class TreeProcessor(object):
     def removeNodes(self, article):
         queries = article.config('remove', [])
         for klass in article.config('remove_class', []):
-            queries.append('.//*[contains(@class, "{0}")]'.format(klass))
+            queries.append('.//*[@class="{0}" or contains(@class, " {0} ") or re:match(@class, "^{0} " ) or re:match(@class, " {0}$" )]'.format(klass))
         for id in article.config('remove_id', []):
-            queries.append('.//*[contains(@id, "{0}")]'.format(id))
+            queries.append('//*[@id="{0}" or contains(@id, " {0} ") or re:match(@id, "^{0} " ) or re:match(@id, " {0}$" )]'.format(klass))
         for query in queries:
-            for node in article.tree.xpath(query):
+            for node in article.tree.xpath(query,namespaces={'re':'http://exslt.org/regular-expressions'}):
                 remove_node(node)
 
     def applyXSLT(self, article):

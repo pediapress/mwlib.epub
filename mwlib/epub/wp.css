@@ -78,6 +78,11 @@ table.infobox th, table.infobox td {
 table.infobox td[colspan="3"], table.infobox th[colspan="3"] {
   border: 1px solid #ccc; }
 
+.infobox caption {
+  font-weight: bold;
+  font-size: 110%;
+}
+
 table.gallery {
   background: #f9f9f9;
   border-bottom: 0; }

@@ -21,6 +21,7 @@ _default_config = [
                       'toc',
                       'noprint',
                       'dablink',
+                      'NavFrame',
                       ],
       'remove':[],
       }),

@@ -220,6 +220,10 @@ class EpubWriter(object):
         self.closeContainer()
 
     def processTitlePage(self):
+        if not any(txt != '' for txt in [self.coll.title,
+                                         self.coll.subtitle,
+                                         self.coll.editor]):
+            return
         titlepage = collection.Chapter(self.coll.title)
         titlepage.id = 'titlepage'
         titlepage.images = {}

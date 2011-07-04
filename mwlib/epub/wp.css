@@ -160,14 +160,14 @@ h3, h4, h5, h6 {
 
 a {
   text-decoration: none;
-  color: #002bb8; }
-  a:visited {
-    color: #5a3696; }
-  a:active {
-    color: #faa700; }
+  color: black; }
+  /* a:visited { */
+  /*   color: #5a3696; } */
+  /* a:active { */
+  /*   color: #faa700; } */
 
-a.new, a.new:visited, a.new:hover {
-  color: red; }
+/* a.new, a.new:visited, a.new:hover { */
+/*   color: red; } */
 
 a.back_to_top, a.back_to_top:visited {
   margin-top: 7px;
@@ -296,8 +296,13 @@ li.gallerybox div.thumb{text-align:center;border:1px solid #ccc;margin:2px}
 div.gallerytext{overflow:hidden;font-size:93%;padding:2px 4px;word-wrap:break-word}
 
 
-h1, h2, h3, h4 {
-  color: red;
-  background-color: grey;
-  border: 2px solid green;
+/* h1, h2, h3, h4 { */
+/*   color: red; */
+/*   background-color: grey; */
+/*   border: 2px solid green; */
+/* } */
+
+
+.thumb, table, h1, h2, h3, h4, h5, h6 { 
+  page-break-inside: avoid;
 }

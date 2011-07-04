@@ -8,6 +8,7 @@ import tempfile
 import mimetypes
 import urlparse
 import subprocess
+from xml.sax.saxutils import escape as xmlescape
 
 from pprint import pprint
 
@@ -243,9 +244,9 @@ class EpubWriter(object):
 
 </body>
 </html>
-        ''' % dict(title=self.coll.title,
-                   subtitle=self.coll.subtitle,
-                   editor=self.coll.editor,)
+        ''' % dict(title=xmlescape(self.coll.title),
+                   subtitle=xmlescape(self.coll.subtitle),
+                   editor=xmlescape(self.coll.editor),)
         self.container.addArticle(titlepage)
 
     def processChapter(self, chapter):
@@ -257,7 +258,7 @@ class EpubWriter(object):
 <head><title>%(title)s</title></head>
 <body><h1 style="margin-top:15%%;font-size:300%%;text-align:center;">%(title)s</h1></body>
 </html>
-        ''' % dict(title=chapter.title)
+        ''' % dict(title=xmlescape(chapter.title))
 
         self.container.addArticle(chapter)
 

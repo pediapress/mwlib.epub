@@ -82,10 +82,19 @@ class TreeProcessor(object):
         self.removeNodes(article)
         self.moveNodes(article)
         self.applyXSLT(article)
+        self.improveLayout(article)
         self.removeInvisible(article)
         self.clearStyles(article)
         self.makeValidXhtml(article)
 
+
+    def _centerImages(self, article):
+        for node in article.tree.xpath('//*[contains(@style, text-align)]//img[not(@align)]'):
+            node.set('align', 'center')
+
+
+    def improveLayout(self, article):
+        self._centerImages(article)
 
     def clearStyles(self, article):
         clear_font_size = re.compile('font-size *:.*?(;|$)')

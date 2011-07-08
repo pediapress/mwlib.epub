@@ -296,6 +296,8 @@ class EpubWriter(object):
             if not err:
                 webpage.images[src] = target_fn
                 self.scaled_images[src] = True
+            else:
+                print 'ERROR: scaling down image failed', src, fn
 
     def remapLinks(self, webpage):
         for img in webpage.tree.findall('.//img'):

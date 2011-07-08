@@ -148,6 +148,20 @@ class TreeProcessor(object):
         self._filterTags(article)
         self._transformInvalidTags(article)
         self._removeInvalidTags(article)
+        self._removeEmptyNodes(article)
+
+    def _removeEmptyNodes(self, article):
+        # Empty minimal content model according to:
+        # http://www.w3.org/TR/xhtml-modularization/abstract_modules.html
+        no_childs = 'br param hr input col img area frame meta link base'.split()
+
+        todo = [article.tree]
+        for root in todo:
+            for leaf in root.xpath('.//*[count(child::*) = 0]'):
+                if (not leaf.text or len(leaf.text)==0) and leaf.tag not in no_childs:
+                    todo.append(leaf.getparent())
+                    remove_node(leaf)
+
 
     def _transformInvalidTags(self, article):
         '''Transform tags invalid in an epubs to something that makes sense if possible'''

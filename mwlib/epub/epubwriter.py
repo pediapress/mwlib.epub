@@ -18,7 +18,7 @@ from lxml import etree
 from lxml.builder import ElementMaker
 
 from mwlib.epub import config
-from mwlib.epub.treeprocessor import TreeProcessor, safe_xml_id, clean_url
+from mwlib.epub.treeprocessor import TreeProcessor, safe_xml_id, clean_url, remove_node
 from mwlib.epub import collection
 
 
@@ -271,11 +271,11 @@ class EpubWriter(object):
 
     def processWebpage(self, webpage):
         from copy import copy
+        self.remapLinks(webpage)
         self.tree_processor = TreeProcessor()
         #self.tree_processor.getMetaInfo(webpage)
         self.tree_processor.annotateNodes(webpage)
         self.tree_processor.clean(webpage)
-        self.remapLinks(webpage)
         webpage.xml = self.serializeArticle(copy(webpage.tree))
         self.container.addArticle(webpage)
 
@@ -307,7 +307,7 @@ class EpubWriter(object):
                 zip_rel_path = os.path.join(config.img_rel_path, os.path.basename(img_fn))
                 img.attrib['src'] = zip_rel_path
             else:
-                img.getparent().remove(img)
+                remove_node(img)
         #FIXME: fix paths of css and other resource files.
         #intra-collection links need to be detected and remapped as well
         for link in webpage.tree.findall('.//link'):

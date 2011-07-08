@@ -183,9 +183,15 @@ class EpubContainer(object):
                                          title=webpage.title,
                                          type='article' if isinstance(webpage, collection.WebPage) else 'chapter'))
 
+
+        used_images = [src[len(config.img_rel_path):] for src in webpage.tree.xpath('//img/@src')]
+
         if getattr(webpage, 'images', False) != False:
             for img_src, img_fn in webpage.images.items():
-                zip_fn = os.path.join(config.img_abs_path, os.path.basename(img_fn))
+                basename = os.path.basename(img_fn)
+                if basename not in used_images:
+                    continue
+                zip_fn = os.path.join(config.img_abs_path, basename)
                 self.link_file(img_fn, zip_fn, compression=False)
 
         if getattr(webpage, 'tree', False) != False:
@@ -264,12 +270,13 @@ class EpubWriter(object):
 
 
     def processWebpage(self, webpage):
+        from copy import copy
         self.tree_processor = TreeProcessor()
         #self.tree_processor.getMetaInfo(webpage)
         self.tree_processor.annotateNodes(webpage)
         self.tree_processor.clean(webpage)
         self.remapLinks(webpage)
-        webpage.xml = self.serializeArticle(webpage.tree)
+        webpage.xml = self.serializeArticle(copy(webpage.tree))
         self.container.addArticle(webpage)
 
     def limit_size(self, webpage, img):

@@ -7,7 +7,6 @@ table {
   margin-right: auto;
   margin-left: auto;
 }
-}
 
 table td, table th {
   vertical-align: top;
@@ -25,43 +24,15 @@ table.toc h2 {
   border: 0;
   padding: 0;}
 
-table.navbox {
-  /* width: 100% !important;  */
-}
-
-table.navbox th.navbox-title {
-  background: #CCCCFF;
-  padding: 5px; }
-
-table.navbox td.navbox-abovebelow {
-  padding: 3px; }
-
-table.navbox td.navbox-group {
-  background: #DDDDFF;
-  width: 25%;
-  padding: 3px; }
-
-table.navbox td.navbox-group+td {
-  padding: 3px; }
-
-table.navbox div[style*="padding"] {
-  padding-left: 0 !important;
-  padding-right: 0 !important; }
-
-table.navbox div[style*="padding"] a {
-  white-space: pre-wrap; }
-
-table.navbox span[style*="white"] {
-  white-space: pre-wrap !important; }
-
-table.navbox td, table.navbox th {
-  padding: 0; }
-
-table.navbox table {
-  margin-bottom: 0; }
 
 table.wikitable th {
-  background: #f3f3f3; }
+  background: #f3f3f3; 
+}
+table.wikitable th, 
+table.wikitable td {
+  border: 1px solid #aaa;
+  padding: 0.2 em;
+}
 
 table[style] {
   /* width: 100% !important; */
@@ -89,8 +60,7 @@ table.gallery {
 
 table.gallery th, table.gallery td {
   display: block;
-  border: 0;
-  solid #ccc; }
+  border: 0 solid #ccc; }
 
 table.gallery .gallerybox[style] {
   width: auto !important;}
@@ -158,9 +128,6 @@ h3, h4, h5, h6 {
   margin: 0.75em 0 0.5em 0;
 }
 
-a {
-  text-decoration: none;
-  color: black; }
   /* a:visited { */
   /*   color: #5a3696; } */
   /* a:active { */
@@ -234,6 +201,14 @@ a.back_to_top, a.back_to_top:visited {
   background:0;
 }
 
+img { 
+ max-width: 100%;
+ clear: both;
+ page-break-inside: avoid !important;
+ padding: 0;
+ margin: 0;
+}
+
 img.thumbborder {
   border: 1px solid #ccc; }
 
@@ -283,6 +258,7 @@ dt {
   font-weight:bold;
 }
 
+/*
 li.gallerybox{vertical-align:top;background-color:#f9f9f9;border:solid 2px white;display:-moz-inline-box}
 
 ul.gallery,li.gallerybox{display:inline-block;zoom:1;*display:inline}
@@ -294,7 +270,7 @@ li.gallerycaption{font-weight:bold;text-align:center;display:block;word-wrap:bre
 li.gallerybox div.thumb{text-align:center;border:1px solid #ccc;margin:2px}
 
 div.gallerytext{overflow:hidden;font-size:93%;padding:2px 4px;word-wrap:break-word}
-
+*/
 
 /* h1, h2, h3, h4 { */
 /*   color: red; */
@@ -305,4 +281,99 @@ div.gallerytext{overflow:hidden;font-size:93%;padding:2px 4px;word-wrap:break-wo
 
 .thumb, table, h1, h2, h3, h4, h5, h6 { 
   page-break-inside: avoid;
+}
+
+/* ====================================================== */
+/* Additions for ePub */
+/* ====================================================== */
+div.thumb {
+  border: none;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  padding-top: 1em;
+  padding-bottom: 1em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+.thumbinner {
+  border: none;
+  padding: 0;
+}
+.thumb .thumbinner[style] {
+  margin: 0;
+}
+
+a.image img {
+  max-width: 100%;
+  max-height: 100%;
+  clear: both; /* This is in Apple's example?! */
+  display: block;
+  page-break-inside: avoid;
+  padding: 0;
+  margin: 0 auto;
+}
+.thumb .thumbcaption {
+  line-height: 1.2em;
+  padding: .5em 0 0 0;
+  margin: .5em 0 0 0;
+  text-indent: 0;
+}
+a {
+  text-decoration: none;
+}
+.thumb + .thumb { margin-top: 0; border-top: none;}
+
+
+ul.gallery{
+  margin:1em 0;
+  padding: 0;
+  list-style-type: none;
+  text-align: left;
+}
+li.gallerybox{
+  vertical-align:top;
+  border: 2px solid white;
+  display: inline-block;
+  page-break-inside: avoid;
+}
+li.gallerybox[style],
+li.gallerybox > div[style] {
+  width: auto !important;
+  max-width: 150px;
+}
+li.gallerybox div[style="width: 155px"] {
+  border:1px solid #ccc;
+  width: 150px !important;
+}
+/*
+li.gallerycaption{
+  font-weight:bold;
+  text-align:center;
+  display:block;
+  word-wrap:break-word
+}
+*/
+li.gallerybox div.thumb {
+  text-align:center;
+  margin: 0;
+  padding: 0;
+  display: table;
+  border: none;
+}
+
+li.gallerybox div.thumb > div[style] {
+  margin: auto !important;
+  display: table-cell;
+  padding: 0;
+  vertical-align: middle;
+}
+
+
+
+div.gallerytext{
+  overflow:hidden;
+  font-size:90%;
+  padding:2px 4px;
+  word-wrap:break-word;
+  border-top: 1px dashed #ccc;
 }

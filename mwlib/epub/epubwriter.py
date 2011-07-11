@@ -184,7 +184,12 @@ class EpubContainer(object):
                                          type='article' if isinstance(webpage, collection.WebPage) else 'chapter'))
 
 
-        used_images = [src[len(config.img_rel_path):] for src in webpage.tree.xpath('//img/@src')]
+        if getattr(webpage, 'tree', False) != False:
+            css_fn = webpage.tree.get('css_fn')
+            self.link_file(css_fn, 'OPS/wp.css') # fixme proper name
+            used_images = [src[len(config.img_rel_path):] for src in webpage.tree.xpath('//img/@src')]
+        else:
+            used_images = []
 
         if getattr(webpage, 'images', False) != False:
             for img_src, img_fn in webpage.images.items():
@@ -194,9 +199,6 @@ class EpubContainer(object):
                 zip_fn = os.path.join(config.img_abs_path, basename)
                 self.link_file(img_fn, zip_fn, compression=False)
 
-        if getattr(webpage, 'tree', False) != False:
-            css_fn = webpage.tree.get('css_fn')
-            self.link_file(css_fn, 'OPS/wp.css') # fixme proper name
 
 class EpubWriter(object):
 

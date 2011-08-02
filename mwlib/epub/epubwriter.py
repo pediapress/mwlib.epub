@@ -382,13 +382,17 @@ def writer(env, output,
     shutil.rmtree(tmpdir)
 
     if validate:
-        print 'VALIDATING EPUB'
         import subprocess
-        p = subprocess.Popen(['epubcheck', output], stdout=subprocess.PIPE)
-        out = p.stdout.read()
-        res = p.wait()
-        print 'validation result:', res
-        print out
+        try:
+            p = subprocess.Popen(['epubcheck', output], stdout=subprocess.PIPE)
+        except OSError:
+            print 'WARNING: epubcheck not found - epub not validated'
+        else:
+            print 'VALIDATING EPUB'
+            out = p.stdout.read()
+            res = p.wait()
+            print 'validation result:', res
+            print out
     print 'generated epub file'
 
 writer.description = 'epub Files'

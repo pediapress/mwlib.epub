@@ -13,7 +13,10 @@ import urlparse
 import shutil
 
 #from gevent.pool import Pool
-import simplejson as json
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
 from mwlib.epub.siteconfig import SiteConfigHandler
 

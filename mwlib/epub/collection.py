@@ -353,7 +353,7 @@ def coll_from_zip(basedir, env):
                         wp.images[src] = fn
                         break
                 if not fn and title not in missing_images:
-                    print 'image not found', src
+                    print 'image not found %r' % src
                     missing_images.append(title)
 
         coll.append(wp)

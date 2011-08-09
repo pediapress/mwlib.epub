@@ -11,6 +11,7 @@ import re
 import urllib2
 import urlparse
 import shutil
+import subprocess
 
 #from gevent.pool import Pool
 try:
@@ -292,6 +293,31 @@ class Collection(object):
         if isinstance(wp, WebPage):
             self.url2webpage[wp.canonical_url] = wp
 
+scaled_images = {}
+def limit_size(img, fn):
+    width = int(img.get('width') or '0')
+    src = img.attrib['src']
+    if src in scaled_images:
+        return scaled_images[src]
+    if width:
+        target_fn = '%s_small%s' % (fn, os.path.splitext(fn)[1])
+        cmd = ['convert',
+               fn,
+               '-resize', '%d' % width,
+               target_fn,
+               ]
+        try:
+            err = subprocess.call(cmd)
+        except OSError:
+            err = True
+
+        if not err:
+            scaled_images[src] = target_fn
+            return target_fn
+        else:
+            print 'ERROR: scaling down image failed', src, fn
+    return fn
+
 def coll_from_zip(basedir, env):
 
     def img_ext_correct(fn):
@@ -338,7 +364,8 @@ def coll_from_zip(basedir, env):
         open(wp.get_path('content.orig'), 'wb').write(html)
         wp.tree = wp._get_parse_tree(html)
 
-        for src in wp.tree.xpath('.//img/@src'):
+        for img in wp.tree.xpath('.//img'):
+            src  = img.attrib['src']
             frags = src.split('/')
             if len(frags):
                 fn = None
@@ -350,6 +377,7 @@ def coll_from_zip(basedir, env):
                         if not correct:
                             os.rename(fn, new_fn)
                             fn = new_fn
+                        fn = limit_size(img, fn)
                         wp.images[src] = fn
                         break
                 if not fn and title not in missing_images:

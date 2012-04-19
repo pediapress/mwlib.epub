@@ -348,7 +348,10 @@ def coll_from_zip(basedir, env):
             chapter = Chapter(item.title)
             coll.append(chapter)
             continue
-
+        elif item.type == 'custom':
+            # a "custom" item currently can be the preface added at pediapress.com
+            # FIXME: support custom item
+            continue
         title = item.title
         url = item.wiki.getURL(title, item.revision)
 

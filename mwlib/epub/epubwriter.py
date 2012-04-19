@@ -297,6 +297,8 @@ class EpubWriter(object):
         target_ids =  webpage.tree.xpath('.//@id')
         for a in webpage.tree.findall('.//a'):
             href = a.get('href')
+            if not href: # this link is probably just an anchor
+                continue
             if href.startswith('#'):
                 target_id = safe_xml_id(href)[1:]
                 if target_id not in target_ids:

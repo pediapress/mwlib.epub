@@ -1,0 +1,6 @@
+*.pyc
+mwlib.epub.egg-info/
+build
+dist
+*~
+*.epub

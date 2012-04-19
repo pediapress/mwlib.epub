@@ -362,17 +362,23 @@ def writer(env, output,
 
     if validate:
         import subprocess
+        cmd = ['epubcheck', output]
+        cmd = 'epubcheck {0}'.format(output)
+        p = subprocess.Popen(cmd,
+                             shell=True,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
         try:
-            p = subprocess.Popen(['epubcheck', output], stdout=subprocess.PIPE)
-        except OSError:
+            stdout, stderr = p.communicate()
+            ret = p.returncode
+        except OSError, e:
             print 'WARNING: epubcheck not found - epub not validated'
+            print 'ERROR', e
         else:
             print 'VALIDATING EPUB'
-            out = p.stdout.read()
-            res = p.wait()
-            print 'validation result:', res
-            print out
-    print 'generated epub file'
+            print 'validation result:', ret
+            print stdout
+            print stderr
 
 writer.description = 'epub Files'
 writer.content_type = 'application/epub+zip'

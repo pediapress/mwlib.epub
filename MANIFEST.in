@@ -1,0 +1,16 @@
+include README.txt
+include mwlib/__init__.py
+include mwlib/epub/__init__.py
+include mwlib/epub/_version.py
+include mwlib/epub/collection.py
+include mwlib/epub/config.py
+include mwlib/epub/epubwriter.py
+include mwlib/epub/mimetype
+include mwlib/epub/siteconfig.py
+include mwlib/epub/treeprocessor.py
+include mwlib/epub/utils/allowed_attributes.json
+include mwlib/epub/utils/allowed_tags.json
+include mwlib/epub/utils/empty_ok.json
+include mwlib/epub/utils/make_tag_attr_list.py
+include mwlib/epub/wp.css
+include setup.py

@@ -1,6 +1,10 @@
 #! /usr/bin/env python
 #! -*- coding:utf-8 -*-
 
+# Copyright (c) 2012, PediaPress GmbH
+# See README.txt for additional licensing information.
+
+
 # from gevent import monkey
 # monkey.patch_all()
 

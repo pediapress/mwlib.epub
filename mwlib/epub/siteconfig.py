@@ -1,6 +1,9 @@
 #! /usr/bin/env python
 #! -*- coding:utf-8 -*-
 
+# Copyright (c) 2012, PediaPress GmbH
+# See README.txt for additional licensing information.
+
 import urlparse
 
 # content: 'xpath-expr' query which selects the content that is supposed to be printed
@@ -67,7 +70,7 @@ class SiteConfigHandler(object):
         if matches[0][0]>1: # domain matched at least
             return matches[0][1]
         return None
-                
+
     def get(self, url, key, default=None):
         if url.startswith('file'):
             site = 'local'

@@ -1,6 +1,9 @@
 #! /usr/bin/env python
 #! -*- coding:utf-8 -*-
 
+# Copyright (c) 2012, PediaPress GmbH
+# See README.txt for additional licensing information.
+
 import os
 from StringIO import StringIO
 import urlparse

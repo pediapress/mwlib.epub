@@ -16,7 +16,7 @@ execfile(distutils.util.convert_path('mwlib/epub/_version.py'))
 install_requires=['mwlib', 'lxml']
 
 def read_long_description():
-    fn = os.path.join(os.path.dirname(os.path.abspath(__file__)), "README.txt")
+    fn = os.path.join(os.path.dirname(os.path.abspath(__file__)), "README.rst")
     return open(fn).read()
 
 def main():

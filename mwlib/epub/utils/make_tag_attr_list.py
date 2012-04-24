@@ -100,7 +100,7 @@ def parseW3C(html):
     allowed_tags['html'].append('meta')
     allowed_tags['head'].extend(['script', 'style', 'link', 'base'])
 
-    open('tag2attr.json', 'w').write(json.dumps(tag2attrs, indent=4))
+    json.dump(tag2attrs, open('allowed_attributes.json', 'w'), indent=4)
     json.dump(allowed_tags, open('allowed_tags.json', 'w'), indent=4)
     json.dump(empty_ok, open('empty_ok.json', 'w'), indent=4)
 

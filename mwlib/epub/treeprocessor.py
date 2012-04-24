@@ -166,7 +166,6 @@ class TreeProcessor(object):
             else:
                 for child in node.getchildren():
                     if child.tag not in allowed_tags.get(node.tag, []):
-                        print 'REMOVING', child.tag, 'from', node.tag
                         todo.append(node)
                         remove_node(child)
             children = node.getchildren()
@@ -199,7 +198,7 @@ class TreeProcessor(object):
 
     def _filterTags(self, article):
         no_check = ['article']
-        fn = os.path.join(os.path.dirname(__file__), 'tag2attr.json') # from: utils/make_tag_attr_list.py
+        fn = os.path.join(os.path.dirname(__file__), 'utils/allowed_attributes.json')
         tag2attrs = json.load(open(fn))
         for node in article.tree.iter(tag=etree.Element):
             if node.tag in no_check:

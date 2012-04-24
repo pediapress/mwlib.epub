@@ -318,7 +318,7 @@ def limit_size(img, fn):
             print 'ERROR: scaling down image failed', src, fn
     return fn
 
-def coll_from_zip(basedir, env):
+def coll_from_zip(basedir, env, status_callback=None):
 
     def img_ext_correct(fn):
         from PIL import Image
@@ -343,7 +343,8 @@ def coll_from_zip(basedir, env):
                       editor=env.metabook.editor or '',
                       )
     missing_images = []
-    for item in env.metabook.walk():
+    progress_inc = 100.0/len(env.metabook.items)
+    for n, item in enumerate(env.metabook.walk()):
         if item.type == 'chapter':
             chapter = Chapter(item.title)
             coll.append(chapter)
@@ -388,7 +389,8 @@ def coll_from_zip(basedir, env):
                     missing_images.append(title)
 
         coll.append(wp)
-
+        if status_callback:
+            status_callback(progress=n*progress_inc)
     return coll
 
 if __name__ == '__main__':

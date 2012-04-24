@@ -201,11 +201,12 @@ class EpubContainer(object):
 
 class EpubWriter(object):
 
-    def __init__(self, output, coll):
+    def __init__(self, output, coll, status_callback=None):
         self.output = output
         self.target_dir = os.path.dirname(output)
         self.coll = coll
         self.scaled_images = {}
+        self.status_callback = status_callback
 
     def initContainer(self):
         if not os.path.exists(self.target_dir):
@@ -219,12 +220,14 @@ class EpubWriter(object):
     def renderColl(self):
         self.initContainer()
         self.processTitlePage()
-        for lvl, webpage in self.coll.outline.walk():
+        progress_inc = 100.0/len(self.coll.outline.items)
+        for n, (lvl, webpage) in enumerate(self.coll.outline.walk()):
             if isinstance(webpage, collection.WebPage):
                 self.processWebpage(webpage)
             elif isinstance(webpage, collection.Chapter):
                 self.processChapter(webpage)
-
+            if self.status_callback:
+                self.status_callback(progress=n*progress_inc)
         self.closeContainer()
 
     def processTitlePage(self):
@@ -352,13 +355,15 @@ def writer(env, output,
            validate=True,
            ):
     if status_callback:
-        status_callback(status='generating epubfile')
+        image_scaling_status = status_callback.getSubRange(1, 50)
+        image_scaling_status(status='scaling images')
+        rendering_status = status_callback.getSubRange(51, 100)
 
     tmpdir = tempfile.mkdtemp()
     zipfn = env
-    coll = collection.coll_from_zip(tmpdir, zipfn)
-
-    epub = EpubWriter(output, coll)
+    coll = collection.coll_from_zip(tmpdir, zipfn, status_callback=image_scaling_status)
+    rendering_status(status='generating epubfile')
+    epub = EpubWriter(output, coll, status_callback=rendering_status)
     epub.renderColl()
     shutil.rmtree(tmpdir)
 

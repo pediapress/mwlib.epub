@@ -4,13 +4,16 @@
 # See README.txt for additional licensing information.
 
 import os
-import ez_setup
-ez_setup.use_setuptools()
-from setuptools import setup
-import distutils.util
+
+try:
+    from setuptools import setup, Extension
+except ImportError:
+    import ez_setup
+    ez_setup.use_setuptools()
+    from setuptools import setup, Extension
 
 version=None
-execfile(distutils.util.convert_path('mwlib/epub/_version.py'))
+execfile('mwlib/epub/_version.py')
 # adds 'version' to local namespace
 
 install_requires=['mwlib', 'lxml']
@@ -20,7 +23,7 @@ def read_long_description():
     return open(fn).read()
 
 def main():
-    if os.path.exists(distutils.util.convert_path('Makefile')):
+    if os.path.exists('Makefile'):
         print 'Running make'
         os.system('make')
     setup(

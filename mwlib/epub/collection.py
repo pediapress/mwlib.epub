@@ -363,7 +363,9 @@ def coll_from_zip(basedir, env, status_callback=None):
             url = unicode(url, 'utf-8')
         data = item.wiki.getHTML(title, item.revision)
         html = data['text']['*']
-        assert isinstance(title, unicode) and isinstance(html, unicode) and isinstance(url, unicode)
+        assert isinstance(title, unicode), 'title is not unicode'
+        assert isinstance(html, unicode), 'html is not unicode'
+        assert isinstance(url, unicode), 'url is not unicode'
         html = '<div id="content"><h1>%s</h1>\n\n%s</div>' % (title.encode('utf-8'), html.encode('utf-8'))
 
         wp = WebPage(coll, title, url, user_agent='Mozilla/5.0') # images

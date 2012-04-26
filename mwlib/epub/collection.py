@@ -359,9 +359,9 @@ def coll_from_zip(basedir, env, status_callback=None):
             continue
         title = item.title
         url = item.wiki.getURL(title, item.revision)
-
+        if isinstance(url, str):
+            url = unicode(url, 'utf-8')
         data = item.wiki.getHTML(title, item.revision)
-
         html = data['text']['*']
         assert isinstance(title, unicode) and isinstance(html, unicode) and isinstance(url, unicode)
         html = '<div id="content"><h1>%s</h1>\n\n%s</div>' % (title.encode('utf-8'), html.encode('utf-8'))

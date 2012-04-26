@@ -378,7 +378,7 @@ def coll_from_zip(basedir, env, status_callback=None):
         for img in wp.tree.xpath('.//img'):
             src  = img.attrib['src']
             frags = src.split('/')
-            if len(frags):
+            if len(frags)>1:
                 fn = None
                 for title in [frags[-2], frags[-1]]:
                     title = urlparse.unquote(title.encode('utf-8')).decode('utf-8')

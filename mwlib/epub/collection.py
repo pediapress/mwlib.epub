@@ -358,14 +358,15 @@ def coll_from_zip(basedir, env, status_callback=None):
             # FIXME: support custom item
             continue
         title = item.title
+        if isinstance(title, str):
+            title = unicode(title, 'utf-8')
         url = item.wiki.getURL(title, item.revision)
         if isinstance(url, str):
             url = unicode(url, 'utf-8')
         data = item.wiki.getHTML(title, item.revision)
         html = data['text']['*']
-        assert isinstance(title, unicode), 'title is not unicode'
-        assert isinstance(html, unicode), 'html is not unicode'
-        assert isinstance(url, unicode), 'url is not unicode'
+        if isinstance(html, str):
+            html = unicode(html, 'utf-8')
         html = '<div id="content"><h1>%s</h1>\n\n%s</div>' % (title.encode('utf-8'), html.encode('utf-8'))
 
         wp = WebPage(coll, title, url, user_agent='Mozilla/5.0') # images

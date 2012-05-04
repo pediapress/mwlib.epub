@@ -16,7 +16,7 @@ from lxml import etree
 allowed_tags = 'body, head, html, title, abbr, acronym, address, blockquote, br, cite, code, dfn, div, em, h1, h2, h3, h4, h5, h6, kbd, p, pre, q, samp, span, strong, var, a, dl, dt, dd, ol, ul, li, object, param, b, big, hr, i, small, sub, sup, tt, del, ins, bdo, caption, col, colgroup, table, tbody, td, tfoot, th, thead, tr, img, area, map, meta, style, link, base'.split(', ')
 
 def safe_xml(txt, mode='id'):
-    txt = txt.replace(':', '_').replace('.', '_').replace('/', '_').replace(';', '_')
+    txt = re.sub(':|\.|\/|\;|\(|\)', '_', txt)
     if mode == 'id':
         txt = re.sub('(\d)', lambda n: chr(97 + int(n.groups()[0])), txt)
     return txt

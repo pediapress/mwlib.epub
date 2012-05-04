@@ -8,7 +8,7 @@
 # from gevent import monkey
 # monkey.patch_all()
 
-from hashlib import sha1
+from hashlib import md5
 from lxml import etree
 import os
 import re
@@ -31,7 +31,7 @@ known_image_exts = set(['.jpg', '.jpeg', '.gif', '.png']) # FIXME
 
 def safe_path(url):
     parts = urlparse.urlparse(url)
-    s = '-'.join([parts.netloc, parts.path, sha1(url).hexdigest()[:6]])
+    s = '-'.join([parts.netloc, parts.path, md5(url).hexdigest()])
     return re.sub('[^-_.a-zA-Z0-9]', '_', s)
 
 

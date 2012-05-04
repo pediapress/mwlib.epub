@@ -235,7 +235,7 @@ class TreeProcessor(object):
 
     def getMetaInfo(self, article):
         article.title = ''
-        query = article.config('title')
+        query = article.siteconfig('title')
         if query:
             title = article.tree.xpath(query)
             if len(title) == 1:
@@ -249,14 +249,14 @@ class TreeProcessor(object):
                 raise CleanerException
 
         article.attribution = ''
-        query = article.config('attribution')
+        query = article.siteconfig('attribution')
         if query:
             attribution = article.tree.xpath(query)
             if len(attribution) == 1:
                 article.attribution = attribution[0]
 
     def moveNodes(self, article):
-        queries = article.config('move_behind', [])
+        queries = article.siteconfig('move_behind', [])
         for source, target in queries:
             source_nodes = article.tree.xpath(source)
             for source_node in source_nodes:
@@ -265,7 +265,7 @@ class TreeProcessor(object):
                     target_node[0].addnext(source_node)
 
     def transformNodes(self, article, custom_queries=[]):
-        queries = custom_queries or article.config('transform')
+        queries = custom_queries or article.siteconfig('transform')
         if not queries:
             return
         #for root_query, node_query, new_node_type in queries:
@@ -284,17 +284,17 @@ class TreeProcessor(object):
                         p.replace(root, new)
 
     def removeNodes(self, article):
-        queries = article.config('remove', [])
-        for klass in article.config('remove_class', []):
+        queries = article.siteconfig('remove', [])
+        for klass in article.siteconfig('remove_class', []):
             queries.append('.//*[@class="{0}" or contains(@class, " {0} ") or re:match(@class, "^{0} " ) or re:match(@class, " {0}$" )]'.format(klass))
-        for id in article.config('remove_id', []):
+        for id in article.siteconfig('remove_id', []):
             queries.append('//*[@id="{0}" or contains(@id, " {0} ") or re:match(@id, "^{0} " ) or re:match(@id, " {0}$" )]'.format(klass))
         for query in queries:
             for node in article.tree.xpath(query,namespaces={'re':'http://exslt.org/regular-expressions'}):
                 remove_node(node)
 
     def applyXSLT(self, article):
-        xslt_frag = article.config('xslt')
+        xslt_frag = article.siteconfig('xslt')
         if not xslt_frag:
             return
         xslt_query = '\n'.join([self.xslt_head, xslt_frag, self.xslt_foot])

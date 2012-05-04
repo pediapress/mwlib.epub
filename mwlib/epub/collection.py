@@ -24,6 +24,7 @@ except ImportError:
     import json
 
 from mwlib.epub.siteconfig import SiteConfigHandler
+from mwlib.epub import config
 
 known_image_exts = set(['.jpg', '.jpeg', '.gif', '.png']) # FIXME
 
@@ -104,8 +105,8 @@ class WebPage(object):
 
     def _add_hires_img_src(self, node):
         regexpNS = "http://exslt.org/regular-expressions"
-        path_query = self.config('hires_path')
-        hires_img_query = self.config('hires_images')
+        path_query = self.siteconfig('hires_path')
+        hires_img_query = self.siteconfig('hires_images')
         if not hires_img_query:
             return
         for img in node.xpath(hires_img_query):
@@ -156,7 +157,7 @@ class WebPage(object):
         # data = self._tidy(data)
         data = unicode(data, 'utf-8', 'ignore') # FIXME: get the correct encoding!
         root = etree.HTML(data) # FIXME: base_url?
-        content_filter = self.config('content')
+        content_filter = self.siteconfig('content')
         if content_filter:
             content = root.xpath(content_filter)
         else:
@@ -206,7 +207,7 @@ class WebPage(object):
         # pool = Pool(num_conns)
         # pool.map(fetch, srcs)
 
-    def config(self, key, default=None):
+    def siteconfig(self, key, default=None):
         return self.coll.siteconfig.get(self.url, key, default=default)
 
 
@@ -305,6 +306,8 @@ def limit_size(img, fn):
         return scaled_images[src]
     if width:
         target_fn = '%s_small%s' % (fn, os.path.splitext(fn)[1])
+        if os.path.exists(target_fn):
+            return target_fn
         cmd = ['convert',
                fn,
                '-resize', '%d' % width,
@@ -347,7 +350,8 @@ def coll_from_zip(basedir, env, status_callback=None):
                       editor=env.metabook.editor or '',
                       )
     missing_images = []
-    progress_inc = 100.0/len(env.metabook.items)
+    num_items = len(env.metabook.items)
+    progress_inc = 100.0/num_items
     for n, item in enumerate(env.metabook.walk()):
         if item.type == 'chapter':
             chapter = Chapter(item.title)
@@ -394,7 +398,8 @@ def coll_from_zip(basedir, env, status_callback=None):
                 if not fn and title not in missing_images:
                     print 'image not found %r' % src
                     missing_images.append(title)
-
+        if num_items > config.max_parsetree_num:
+            del wp.tree
         coll.append(wp)
         if status_callback:
             status_callback(progress=n*progress_inc)

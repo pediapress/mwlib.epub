@@ -33,7 +33,7 @@ def serialize(f):
 class EpubContainer(object):
 
     def __init__(self, fn, coll):
-        self.zf = zipfile.ZipFile(fn, 'w', compression=zipfile.ZIP_DEFLATED)
+        self.zf = zipfile.ZipFile(fn, 'w', compression=zipfile.ZIP_DEFLATED, allowZip64=True)
         self.zf.debug = 3
         self.added_files = set()
         self.write_mime_type()
@@ -277,6 +277,8 @@ class EpubWriter(object):
 
 
     def processWebpage(self, webpage):
+        if not hasattr(webpage, 'tree'):
+            webpage.tree = webpage._get_parse_tree()
         from copy import copy
         self.remapLinks(webpage)
         self.tree_processor = TreeProcessor()
@@ -285,7 +287,8 @@ class EpubWriter(object):
         self.tree_processor.clean(webpage)
         webpage.xml = self.serializeArticle(copy(webpage.tree))
         self.container.addArticle(webpage)
-
+        del webpage.tree
+        del webpage.xml
 
     def remapLinks(self, webpage):
         for img in webpage.tree.findall('.//img'):

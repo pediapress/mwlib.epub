@@ -12,8 +12,6 @@ import re
 import json
 from lxml import etree
 
-# Source of list: http://idpf.org/epub/20/spec/OPS_2.0.1_draft.htm#Section2.2.1
-allowed_tags = 'body, head, html, title, abbr, acronym, address, blockquote, br, cite, code, dfn, div, em, h1, h2, h3, h4, h5, h6, kbd, p, pre, q, samp, span, strong, var, a, dl, dt, dd, ol, ul, li, object, param, b, big, hr, i, small, sub, sup, tt, del, ins, bdo, caption, col, colgroup, table, tbody, td, tfoot, th, thead, tr, img, area, map, meta, style, link, base'.split(', ')
 
 def safe_xml(txt, mode='id'):
     txt = re.sub(':|\.|\/|\;|\(|\)', '_', txt)
@@ -61,6 +59,14 @@ class TreeProcessor(object):
   </xsl:copy>
  </xsl:template>
 </xsl:transform>'''
+
+    tag2attrs = json.load(
+        open(os.path.join(os.path.dirname(__file__), 'utils/allowed_attributes.json')))
+    allowed_tags = json.load(
+        open(os.path.join(os.path.dirname(__file__), 'utils/allowed_tags.json')))
+    empty_ok = json.load(
+        open(os.path.join(os.path.dirname(__file__), 'utils/empty_ok.json')))
+
 
     def __init__(self):
         pass
@@ -154,21 +160,16 @@ class TreeProcessor(object):
         self._filterContent(article)
 
     def _filterContent(self, article):
-        fn = os.path.join(os.path.dirname(__file__), 'utils/allowed_tags.json')
-        allowed_tags = json.load(open(fn))
-        fn = os.path.join(os.path.dirname(__file__), 'utils/empty_ok.json')
-        empty_ok = json.load(open(fn))
-
         todo = [article.tree]
         while todo:
             node = todo.pop()
             if not node.getchildren():
-                if not node.tag in empty_ok:
+                if not node.tag in self.empty_ok:
                     todo.append(node.getparent())
                     remove_node(node)
             else:
                 for child in node.getchildren():
-                    if child.tag not in allowed_tags.get(node.tag, []):
+                    if child.tag not in self.allowed_tags.get(node.tag, []):
                         todo.append(node)
                         remove_node(child)
             children = node.getchildren()
@@ -201,15 +202,13 @@ class TreeProcessor(object):
 
     def _filterTags(self, article):
         no_check = ['article']
-        fn = os.path.join(os.path.dirname(__file__), 'utils/allowed_attributes.json')
-        tag2attrs = json.load(open(fn))
         for node in article.tree.iter(tag=etree.Element):
             if node.tag in no_check:
                 continue
-            if node.tag not in allowed_tags:
+            if node.tag not in self.allowed_tags:
                 node.set('invalid', '1')
                 continue
-            allowed_attrs = tag2attrs.get(node.tag)
+            allowed_attrs = self.tag2attrs.get(node.tag)
             for attr_name, attr_val in node.items():
                 if attr_name not in allowed_attrs or \
                        (attr_val == '' and attr_name not in ['alt']):

@@ -405,6 +405,16 @@ def coll_from_zip(basedir, env, status_callback=None):
             status_callback(progress=n*progress_inc)
     return coll
 
+def article_from_html_frag(frag):
+    from tempfile import mkdtemp
+    coll = Collection(mkdtemp())
+    article = WebPage(coll, 'test', 'file://dev/null')
+    # we need to trick the default siteconfig:
+    frag = '<div id="content">{frag}</div>'.format(frag=frag)
+    article.tree = article._get_parse_tree(data=frag)
+    return article
+
+
 if __name__ == '__main__':
 
     import sys

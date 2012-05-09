@@ -23,6 +23,10 @@ try:
 except ImportError:
     import json
 
+import tidylib
+tidylib.BASE_OPTIONS = {}
+
+
 from mwlib.epub.siteconfig import SiteConfigHandler
 from mwlib.epub import config
 
@@ -33,6 +37,25 @@ def safe_path(url):
     parts = urlparse.urlparse(url)
     s = '-'.join([parts.netloc, parts.path, md5(url).hexdigest()])
     return re.sub('[^-_.a-zA-Z0-9]', '_', s)
+
+# documentation of tidy options:
+# http://tidy.sourceforge.net/docs/quickref.html
+# or on the commandline: man tidy
+tidy_opts = {'output-xhtml': True,
+             'doctype': 'strict',
+             'force-output': True,
+             'add-xml-decl': True,
+             'tidy-mark': False, # suppress tidy meta generator in html head
+             'char-encoding': 'utf8',
+             'enclose-block_text': True,
+             #'repeated-attributes': keep-last
+             #'alt-text': '',
+             # 'clean':True,
+             }
+
+def tidy_xhtml(html):
+    html, errors = tidylib.tidy_document(html, tidy_opts)
+    return html, errors
 
 
 class Chapter(object):
@@ -138,23 +161,10 @@ class WebPage(object):
         head.append(link)
         article.set('css_fn', css_path)
 
-    def _tidy(self, html):
-        import tidy
-        tidy_opts = { # http://tidy.sourceforge.net/docs/quickref.html
-            "output-xhtml": True,
-            "tidy-mark": False,
-            "alt-text": "",
-            "doctype": 'strict',
-            "force-output": True,
-            # 'clean':True,
-            'char-encoding': 'utf8',
-            }
-        return tidy.parseString(html, **tidy_opts).__str__()
-
     def _get_parse_tree(self, data=None):
         if not data:
             data = open(self.get_path('content.orig')).read()
-        # data = self._tidy(data)
+        data, errors = tidy_xhtml(data)
         data = unicode(data, 'utf-8', 'ignore') # FIXME: get the correct encoding!
         root = etree.HTML(data) # FIXME: base_url?
         content_filter = self.siteconfig('content')

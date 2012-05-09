@@ -158,44 +158,6 @@ class TreeProcessor(object):
         self._transformInvalidTags(article)
         self._removeInvalidTags(article)
         self._filterContent(article)
-        self._fixBareText(article)
-
-    def _fixBareText(self, article):
-        todo = [article.tree]
-
-        def handle_tail(node, child):
-            if 'p' in self.allowed_tags.get(node.tag, []):
-                p = etree.Element('p')
-                p.text = child.tail
-                child.tail = None
-                child.addnext(p)
-            else:
-                child.tail = None
-
-        def handle_text(node):
-            if 'p' in self.allowed_tags.get(node.tag, []):
-                p = etree.Element('p')
-                p.text = node.text
-                node.text = None
-                node.insert(0, p)
-            else:
-                node.text = None
-
-        while todo:
-            node = todo.pop()
-
-            if (node.text and node.text.strip() and
-                'PCDATA' not in self.allowed_tags.get(node.tag, [])):
-                handle_text(node)
-
-            children = node.getchildren()
-            if children:
-                for child in children:
-                    if (child.tail and child.tail.strip() and
-                        'PCDATA' not in self.allowed_tags.get(node.tag, [])):
-                        handle_tail(node, child)
-                todo.extend(children)
-
 
     def _filterContent(self, article):
         todo = [article.tree]

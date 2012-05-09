@@ -4,13 +4,25 @@
 # Copyright (c) 2012, PediaPress GmbH
 # See README.txt for additional licensing information.
 
+import pytest
+from lxml import etree
+
 from mwlib.epub import treeprocessor
 from mwlib.epub import collection
 
 def dump_tree(root):
-    from lxml import etree
     print etree.tostring(root, pretty_print=True, encoding='utf-8')
 
+def get_tidy_tree(html, dump=False):
+    html = etree.tostring(etree.HTML(html), encoding='utf-8')
+    html, errors = collection.tidy_xhtml(html)
+    if dump:
+        print '>'*40
+        print html
+        if errors:
+            print '!'*40
+            print errors
+    return etree.HTML(html)
 
 def test_safe_xml():
     strings = [('http://blub.com;', 'http___blub_com_'),
@@ -19,7 +31,18 @@ def test_safe_xml():
     for input, expected_out in strings:
         assert treeprocessor.safe_xml(input) == expected_out
 
-def test_nesting1():
+def test_bare_text_trivial():
+    html = '''\
+<blockquote>
+ unmotivated text
+</blockquote>
+    '''
+    tree = get_tidy_tree(html)
+    bq = tree.xpath('//blockquote')[0]
+    assert len(bq.text.strip()) == 0
+
+@pytest.mark.xfail
+def test_bare_text_simple():
     html='''\
 <blockquote>
  <ol>
@@ -28,25 +51,7 @@ def test_nesting1():
  unmotivated text
 </blockquote>
 '''
-    article = collection.article_from_html_frag(html)
-    tp = treeprocessor.TreeProcessor()
-    tp._fixBareText(article)
-
-    ol = article.tree.xpath('//ol')[0]
+    tree = get_tidy_tree(html)
+    ol = tree.xpath('//ol')[0]
+    dump_tree(tree)
     assert ol.tail is None
-
-def test_nesting2():
-    html='''\
-<blockquote>
- unmotivated text
- <ol>
-  <li>blub</li>
- </ol>
-</blockquote>
-'''
-    article = collection.article_from_html_frag(html)
-    tp = treeprocessor.TreeProcessor()
-    tp._fixBareText(article)
-
-    bq = article.tree.xpath('//blockquote')[0]
-    assert bq.text is None

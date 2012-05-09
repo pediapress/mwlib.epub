@@ -4,11 +4,25 @@
 # Copyright (c) 2012, PediaPress GmbH
 # See README.txt for additional licensing information.
 
+import subprocess
+
 import pytest
 from lxml import etree
 
 from mwlib.epub import treeprocessor
 from mwlib.epub import collection
+from mwlib.epub import epubwriter
+
+def run_cmd(cmd):
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    return p.returncode, stdout, stderr
+
+def render_frag(frag, tmpdir, epub_fn):
+    full_fn = str(tmpdir.join(epub_fn))
+    epubwriter.render_fragment(full_fn, frag, dump_xhtml=True)
+    return run_cmd(['epubcheck',
+                    full_fn])
 
 def dump_tree(root):
     print etree.tostring(root, pretty_print=True, encoding='utf-8')
@@ -64,3 +78,21 @@ this is centered text
 '''
     tree = get_tidy_tree(html)
     assert len(tree.xpath('//center')) == 0
+
+def test_tidy_old_tags(tmpdir):
+    frag = '''\
+<center>
+this is centered text
+</center>
+'''
+    ret, stdout, stderr = render_frag(frag, tmpdir, 'tidy_old_tags.epub')
+    assert ret == 0
+
+@pytest.mark.xfail
+def test_tidy_ids(tmpdir):
+    frag = '''\
+    <p id="blub17:42">bla</p>
+'''
+
+    ret, stdout, stderr = render_frag(frag, tmpdir, 'tidy_ids.epub')
+    assert ret == 0

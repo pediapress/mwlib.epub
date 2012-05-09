@@ -220,13 +220,13 @@ class EpubWriter(object):
     def closeContainer(self):
         self.container.close()
 
-    def renderColl(self):
+    def renderColl(self, dump_xhtml=False):
         self.initContainer()
         self.processTitlePage()
         progress_inc = 100.0/len(self.coll.outline.items)
         for n, (lvl, webpage) in enumerate(self.coll.outline.walk()):
             if isinstance(webpage, collection.WebPage):
-                self.processWebpage(webpage)
+                self.processWebpage(webpage, dump_xhtml=dump_xhtml)
             elif isinstance(webpage, collection.Chapter):
                 self.processChapter(webpage)
             if self.status_callback:
@@ -276,7 +276,7 @@ class EpubWriter(object):
         self.container.addArticle(chapter)
 
 
-    def processWebpage(self, webpage):
+    def processWebpage(self, webpage, dump_xhtml=False):
         if not hasattr(webpage, 'tree'):
             webpage.tree = webpage._get_parse_tree()
         from copy import copy
@@ -287,6 +287,8 @@ class EpubWriter(object):
         self.tree_processor.clean(webpage)
         webpage.xml = self.serializeArticle(copy(webpage.tree))
         self.container.addArticle(webpage)
+        if dump_xhtml:
+            print webpage.xml
         del webpage.tree
         del webpage.xml
 
@@ -354,11 +356,11 @@ class EpubWriter(object):
 
         return xml
 
-def render_fragment(epub_fn, fragment):
+def render_fragment(epub_fn, fragment, dump_xhtml=False):
     collection_dir = os.path.dirname(epub_fn)
     coll = collection.collection_from_html_frag(fragment, collection_dir)
     epub = EpubWriter(epub_fn, coll)
-    epub.renderColl()
+    epub.renderColl(dump_xhtml=dump_xhtml)
 
 def writer(env, output,
            status_callback=None,

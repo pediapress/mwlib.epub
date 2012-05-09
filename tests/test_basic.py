@@ -55,3 +55,12 @@ def test_bare_text_simple():
     ol = tree.xpath('//ol')[0]
     dump_tree(tree)
     assert ol.tail is None
+
+def test_convert_center():
+    html='''\
+<center>
+this is centered text
+</center>
+'''
+    tree = get_tidy_tree(html)
+    assert len(tree.xpath('//center')) == 0

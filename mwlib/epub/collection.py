@@ -47,10 +47,11 @@ tidy_opts = {'output-xhtml': True,
              'add-xml-decl': True,
              'tidy-mark': False, # suppress tidy meta generator in html head
              'char-encoding': 'utf8',
+             'css-prefix': 'tidy',
              'enclose-block_text': True,
              #'repeated-attributes': keep-last
              #'alt-text': '',
-             # 'clean':True,
+             'clean':True,
              }
 
 def tidy_xhtml(html):
@@ -137,7 +138,7 @@ class WebPage(object):
                 hires_path = img.xpath(path_query, namespaces={'re':regexpNS}).strip()
                 img.set('hiressrc', hires_path)
 
-    def handleCss(self, article):
+    def handleCss(self, article, styles=[]):
         css_fn = 'wp.css' # FIXME make this configurable
 
         css_path_orig = os.path.join(os.path.dirname(__file__), css_fn)
@@ -159,7 +160,13 @@ class WebPage(object):
             head = etree.Element('head')
             article.insert(0, head)
         head.append(link)
+        for style in styles:
+            head.append(style)
         article.set('css_fn', css_path)
+
+    def get_styles(self, tree):
+        styles = tree.xpath('//head//style[@type="text/css"]')
+        return styles
 
     def _get_parse_tree(self, data=None):
         if not data:
@@ -172,10 +179,11 @@ class WebPage(object):
             content = root.xpath(content_filter)
         else:
             content = root
+        styles = self.get_styles(root)
         art = etree.Element('article')
         art.extend(content)
 
-        self.handleCss(art)
+        self.handleCss(art, styles)
 
         self._add_hires_img_src(art)
         return art
@@ -257,7 +265,7 @@ class Outline(object):
 
 
 class Collection(object):
-    def __init__(self, basedir, title=None, subtitle=None, editor=None, custom_siteconfig=None):
+    def __init__(self, basedir, title='', subtitle='', editor='', custom_siteconfig=None):
         self.basedir = basedir
         self.title = title
         self.subtitle = subtitle
@@ -415,15 +423,23 @@ def coll_from_zip(basedir, env, status_callback=None):
             status_callback(progress=n*progress_inc)
     return coll
 
-def article_from_html_frag(frag):
-    from tempfile import mkdtemp
-    coll = Collection(mkdtemp())
+
+def collection_from_html_frag(frag, collection_dir=None):
+    if not collection_dir:
+        from tempfile import mkdtemp
+        collection_dir = mkdtemp()
+    coll = Collection(collection_dir)
     article = WebPage(coll, 'test', 'file://dev/null')
     # we need to trick the default siteconfig:
     frag = '<div id="content">{frag}</div>'.format(frag=frag)
     article.tree = article._get_parse_tree(data=frag)
-    return article
+    article.canonical_url = 'file://dev/null'
+    coll.append(article)
+    return coll
 
+def article_from_html_frag(frag):
+    coll = collection_from_html_frag(frag)
+    return coll.outline.items[0]
 
 if __name__ == '__main__':
 

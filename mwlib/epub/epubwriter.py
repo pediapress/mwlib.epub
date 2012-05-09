@@ -354,7 +354,11 @@ class EpubWriter(object):
 
         return xml
 
-
+def render_fragment(epub_fn, fragment):
+    collection_dir = os.path.dirname(epub_fn)
+    coll = collection.collection_from_html_frag(fragment, collection_dir)
+    epub = EpubWriter(epub_fn, coll)
+    epub.renderColl()
 
 def writer(env, output,
            status_callback=None,

@@ -48,7 +48,7 @@ tidy_opts = {'output-xhtml': True,
              'tidy-mark': False, # suppress tidy meta generator in html head
              'char-encoding': 'utf8',
              'css-prefix': 'tidy',
-             'enclose-block_text': True,
+             'enclose-block-text': True,
              #'repeated-attributes': keep-last
              #'alt-text': '',
              'clean':True,

@@ -365,6 +365,7 @@ def render_fragment(epub_fn, fragment, dump_xhtml=False):
 def writer(env, output,
            status_callback=None,
            validate=True,
+           dump_xhtml=False
            ):
     if status_callback:
         image_scaling_status = status_callback.getSubRange(1, 50)
@@ -376,7 +377,7 @@ def writer(env, output,
     coll = collection.coll_from_zip(tmpdir, zipfn, status_callback=image_scaling_status)
     rendering_status(status='generating epubfile')
     epub = EpubWriter(output, coll, status_callback=rendering_status)
-    epub.renderColl()
+    epub.renderColl(dump_xhtml=dump_xhtml)
     shutil.rmtree(tmpdir)
 
     if validate:
@@ -402,4 +403,8 @@ def writer(env, output,
 writer.description = 'epub Files'
 writer.content_type = 'application/epub+zip'
 writer.file_extension = 'epub'
-
+writer.options = {
+    'dump_xhtml': {
+        'help': 'Debugging flag - when set output generated xhtml of all articles',
+        },
+    }

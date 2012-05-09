@@ -88,7 +88,6 @@ this is centered text
     ret, stdout, stderr = render_frag(frag, tmpdir, 'tidy_old_tags.epub')
     assert ret == 0
 
-@pytest.mark.xfail
 def test_tidy_ids(tmpdir):
     frag = '''\
     <p id="blub17:42">bla</p>

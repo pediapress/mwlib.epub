@@ -23,8 +23,12 @@ try:
 except ImportError:
     import json
 
-import tidylib
-tidylib.BASE_OPTIONS = {}
+try:
+    import tidylib
+    tidylib.BASE_OPTIONS = {}
+    from tidylib import tidy_document
+except ImportError:
+    tidy_document = lambda html, opts: (html, '')
 
 
 from mwlib.epub.siteconfig import SiteConfigHandler
@@ -55,7 +59,7 @@ tidy_opts = {'output-xhtml': True,
              }
 
 def tidy_xhtml(html):
-    html, errors = tidylib.tidy_document(html, tidy_opts)
+    html, errors = tidy_document(html, tidy_opts)
     return html, errors
 
 

@@ -95,7 +95,18 @@ class TreeProcessor(object):
         self.removeInvisible(article)
         self.clearStyles(article)
         self.makeValidXhtml(article)
+        self.removeExternalWikiLinks(article)
 
+    def removeExternalWikiLinks(self, article):
+        '''remove all links to wikipedia articles outside of the epub file '''
+        for link in article.tree.xpath('//a'):
+            href = link.get('href')
+            print href
+            if href.startswith('http') and 'wikipedia' in href:
+                link.tag = 'span'
+                for attr in ['href', 'rel']:
+                    if attr in link.attrib:
+                        link.attrib.pop(attr)
 
     def _centerImages(self, article):
         for node in article.tree.xpath('//*[contains(@style, text-align)]//img[not(@align)]'):

@@ -221,18 +221,20 @@ class EpubWriter(object):
         self.container.close()
 
     def renderColl(self, dump_xhtml=False):
+        xhtml = None
         self.initContainer()
         self.processTitlePage()
         progress_inc = 100.0/len(self.coll.outline.items)
         for n, (lvl, webpage) in enumerate(self.coll.outline.walk()):
             if isinstance(webpage, collection.WebPage):
-                self.processWebpage(webpage, dump_xhtml=dump_xhtml)
+                xhtml = self.processWebpage(webpage, dump_xhtml=dump_xhtml)
             elif isinstance(webpage, collection.Chapter):
                 self.processChapter(webpage)
             if self.status_callback:
                 self.status_callback(progress=n*progress_inc)
         self.closeContainer()
-
+        if dump_xhtml:
+            return xhtml
     def processTitlePage(self):
         if not any(txt != '' for txt in [self.coll.title,
                                          self.coll.subtitle,
@@ -288,7 +290,7 @@ class EpubWriter(object):
         webpage.xml = self.serializeArticle(copy(webpage.tree))
         self.container.addArticle(webpage)
         if dump_xhtml:
-            print webpage.xml
+            return webpage.xml
         del webpage.tree
         del webpage.xml
 
@@ -305,7 +307,7 @@ class EpubWriter(object):
         for link in webpage.tree.findall('.//link'):
             link.set('href','wp.css')
 
-        target_ids =  webpage.tree.xpath('.//@id')
+        target_ids = [safe_xml_id(_id) for _id in webpage.tree.xpath('.//@id')]
         for a in webpage.tree.findall('.//a'):
             href = a.get('href')
             if not href: # this link is probably just an anchor
@@ -360,7 +362,8 @@ def render_fragment(epub_fn, fragment, dump_xhtml=False):
     collection_dir = os.path.dirname(epub_fn)
     coll = collection.collection_from_html_frag(fragment, collection_dir)
     epub = EpubWriter(epub_fn, coll)
-    epub.renderColl(dump_xhtml=dump_xhtml)
+    xhtml = epub.renderColl(dump_xhtml=dump_xhtml)
+    return xhtml
 
 def writer(env, output,
            status_callback=None,

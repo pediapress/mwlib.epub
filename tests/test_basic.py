@@ -20,9 +20,10 @@ def run_cmd(cmd):
 
 def render_frag(frag, tmpdir, epub_fn):
     full_fn = str(tmpdir.join(epub_fn))
-    epubwriter.render_fragment(full_fn, frag, dump_xhtml=True)
-    return run_cmd(['epubcheck',
-                    full_fn])
+    xhtml = epubwriter.render_fragment(full_fn, frag, dump_xhtml=True)
+    ret, stdout, stderr = run_cmd(['epubcheck',
+                           full_fn])
+    return xhtml, ret, stdout, stderr
 
 def dump_tree(root):
     print etree.tostring(root, pretty_print=True, encoding='utf-8')
@@ -85,7 +86,7 @@ def test_tidy_old_tags(tmpdir):
 this is centered text
 </center>
 '''
-    ret, stdout, stderr = render_frag(frag, tmpdir, 'tidy_old_tags.epub')
+    xhtml, ret, stdout, stderr = render_frag(frag, tmpdir, 'tidy_old_tags.epub')
     assert ret == 0
 
 def test_tidy_ids(tmpdir):
@@ -93,5 +94,19 @@ def test_tidy_ids(tmpdir):
     <p id="blub17:42">bla</p>
 '''
 
-    ret, stdout, stderr = render_frag(frag, tmpdir, 'tidy_ids.epub')
+    xhtml, ret, stdout, stderr = render_frag(frag, tmpdir, 'tidy_ids.epub')
     assert ret == 0
+
+def test_ref_link(tmpdir):
+    frag = '''\
+<p>blub<sup id="cite_ref-0" class="reference"><a href="#cite_note-0">[1]</a></sup></p>
+<ol class="references">
+<li id="cite_note-0"><span class="mw-cite-backlink"><a href="#cite_ref-0">up</a></span> <span class="reference-text">bla</span></li>
+</ol>
+
+'''
+
+    xhtml, ret, stdout, stderr = render_frag(frag, tmpdir, 'ref_links.epub')
+    tree = etree.HTML(xhtml)
+    a =tree.xpath('//a')[0]
+    assert a.get('id') == None

@@ -16,7 +16,7 @@ version=None
 execfile('mwlib/epub/_version.py')
 # adds 'version' to local namespace
 
-install_requires=['mwlib', 'lxml', 'pytidylib']
+install_requires=['mwlib', 'lxml']
 
 def read_long_description():
     fn = os.path.join(os.path.dirname(os.path.abspath(__file__)), "README.rst")

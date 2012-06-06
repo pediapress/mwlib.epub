@@ -101,7 +101,6 @@ class TreeProcessor(object):
         '''remove all links to wikipedia articles outside of the epub file '''
         for link in article.tree.xpath('//a'):
             href = link.get('href')
-            print href
             if href.startswith('http') and 'wikipedia' in href:
                 link.tag = 'span'
                 for attr in ['href', 'rel']:

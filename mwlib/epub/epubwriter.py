@@ -367,7 +367,7 @@ def render_fragment(epub_fn, fragment, dump_xhtml=False):
 
 def writer(env, output,
            status_callback=None,
-           validate=True,
+           validate=False,
            dump_xhtml=False
            ):
     if status_callback:

@@ -10,8 +10,10 @@ import urlparse
 import urllib
 import re
 import json
-from lxml import etree
 
+from lxml import etree
+import cssutils
+cssutils.log.enabled = False
 
 def safe_xml(txt, mode='id'):
     txt = re.sub(':|\.|\/|\;|\(|\)', '_', txt)
@@ -165,8 +167,27 @@ class TreeProcessor(object):
         self._fixIDs(article)
         self._fixClasses(article)
         self._filterTags(article)
+        self._filterStyles(article)
         self._removeInvalidTags(article)
         self._filterContent(article)
+
+
+    def _filterStyles(self, article):
+        for node in article.tree.xpath('//*[@style]'):
+            #original_style = node.get('style')
+            try:
+                styles = cssutils.parseStyle(node.get('style'), validate=True)
+            except ValueError:
+                # the node style is broken and cssutils crashes - we remove the style
+                del node.attrib['style']
+            removed_style = False
+            for style in styles.children():
+                if hasattr(style, 'valid') and not style.valid:
+                    styles.removeProperty(style.name)
+                    removed_style = True
+            if removed_style:
+                node.set('style', styles.getCssText().replace('\n', ''))
+
 
     def _filterContent(self, article):
         todo = [article.tree]

@@ -201,7 +201,7 @@ class TreeProcessor(object):
             if node.tag not in self.allowed_tags:
                 node.set('invalid', '1')
                 continue
-            allowed_attrs = self.tag2attrs.get(node.tag)
+            allowed_attrs = self.tag2attrs.get(node.tag, [])
             for attr_name, attr_val in node.items():
                 if attr_name not in allowed_attrs or \
                        (attr_val == '' and attr_name not in ['alt']):

@@ -381,6 +381,8 @@ def writer(env, output,
     rendering_status(status='generating epubfile')
     epub = EpubWriter(output, coll, status_callback=rendering_status)
     epub.renderColl(dump_xhtml=dump_xhtml)
+    # import cProfile
+    # cProfile.runctx('epub.renderColl(dump_xhtml=dump_xhtml)',globals(), locals(), 'profile')
     shutil.rmtree(tmpdir)
 
     if validate:

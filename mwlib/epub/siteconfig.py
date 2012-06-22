@@ -39,6 +39,11 @@ _default_config = [
                       ],
       'remove':[],
       }),
+    ('http://orbit.educ.cam.ac.uk',
+     {'remove_class': ['editsection',
+                       'noprint'
+                       ],
+         }),
     ]
 
 default_config = dict(_default_config)

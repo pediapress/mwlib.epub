@@ -61,7 +61,7 @@ class Chapter(object):
 class WebPage(object):
     "Resource GETtable via HTTP, described by URL"
 
-    def __init__(self, coll, title, url, images=None, user_agent=None):
+    def __init__(self, coll, title, url, images=None, user_agent=None, contributors=None):
         self.coll = coll
         self.title = title
         self.url = url
@@ -71,6 +71,7 @@ class WebPage(object):
             os.makedirs(self.basedir)
         self.images = images or {}
         self.user_agent = user_agent
+        self.contributors = contributors or []
 
     def as_dict(self):
         return {
@@ -79,6 +80,7 @@ class WebPage(object):
             'url': self.url,
             'images': self.images,
             'user_agent': self.user_agent,
+            'contributors': self.contributors,
         }
 
     @classmethod
@@ -88,6 +90,7 @@ class WebPage(object):
                   url=data['url'],
                   images=data['images'],
                   user_agent=data['user_agent'],
+                  contributors=data['contributors'],
                   )
         res.tree = res._get_parse_tree()
         return res
@@ -365,8 +368,9 @@ def coll_from_zip(basedir, env, status_callback=None):
         if isinstance(html, str):
             html = unicode(html, 'utf-8')
         html = '<div id="content"><h1>%s</h1>\n\n%s</div>' % (title.encode('utf-8'), html.encode('utf-8'))
-
-        wp = WebPage(coll, title, url, user_agent='Mozilla/5.0') # images
+        wp = WebPage(coll, title, url, user_agent='Mozilla/5.0',
+                     contributors=env.wiki.getAuthors(title=item.title, revision=item.revision)
+                     ) # images
         wp.canonical_url = urlparse.urljoin(item._env.wiki.siteinfo['general']['base'], urllib2.quote(title.replace(' ', '_').encode('utf-8')).decode('utf-8'))
 
         open(wp.get_path('content.orig'), 'wb').write(html)

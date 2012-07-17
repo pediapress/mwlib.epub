@@ -23,6 +23,7 @@ from mwlib.epub import config
 from mwlib.epub.treeprocessor import TreeProcessor, safe_xml_id, clean_url, remove_node
 from mwlib.epub import collection
 
+_ = lambda txt: txt # FIXME: add proper translation support
 
 ArticleInfo = namedtuple('ArticleInfo', 'id path title type')
 
@@ -232,9 +233,11 @@ class EpubWriter(object):
                 self.processChapter(webpage)
             if self.status_callback:
                 self.status_callback(progress=n*progress_inc)
+        self.processMetaInfo()
         self.closeContainer()
         if dump_xhtml:
             return xhtml
+
     def processTitlePage(self):
         if not any(txt != '' for txt in [self.coll.title,
                                          self.coll.subtitle,
@@ -263,6 +266,13 @@ class EpubWriter(object):
                    subtitle=xmlescape(self.coll.subtitle),
                    editor=xmlescape(self.coll.editor),)
         self.container.addArticle(titlepage)
+
+    def processMetaInfo(self):
+        from mwlib.epub import metainfo
+        chapter = collection.Chapter(_('Article Sources and Contributors'))
+        chapter.id = '_articlesources'
+        chapter.xml = metainfo.getArticleMetainfo(chapter, self.coll)
+        self.container.addArticle(chapter)
 
     def processChapter(self, chapter):
         self.num_chapters = getattr(self, 'num_chapters', 0) + 1

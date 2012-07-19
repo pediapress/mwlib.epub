@@ -16,6 +16,7 @@ import urllib2
 import urlparse
 import shutil
 import subprocess
+from collections import OrderedDict
 
 #from gevent.pool import Pool
 try:
@@ -25,6 +26,8 @@ except ImportError:
 
 from mwlib.epub.siteconfig import SiteConfigHandler
 from mwlib.epub import config
+
+from mwlib.writer.licensechecker import LicenseChecker
 
 known_image_exts = set(['.jpg', '.jpeg', '.gif', '.png']) # FIXME
 
@@ -243,11 +246,13 @@ class Outline(object):
 
 
 class Collection(object):
-    def __init__(self, basedir, title='', subtitle='', editor='', custom_siteconfig=None):
+    def __init__(self, basedir, title='', subtitle='', editor='',
+                 custom_siteconfig=None, img_contributors=None):
         self.basedir = basedir
         self.title = title
         self.subtitle = subtitle
         self.editor = editor
+        self.img_contributors = img_contributors or OrderedDict()
         self.outline = Outline(self)
         self.custom_siteconfig = custom_siteconfig
         self.siteconfig = SiteConfigHandler(custom_siteconfig=custom_siteconfig)
@@ -260,6 +265,7 @@ class Collection(object):
             'editor': self.editor,
             'outline': self.outline.as_dict(),
             'custom_siteconfig': self.custom_siteconfig,
+            'img_contributors': self.img_contributors,
         }
         json.dump(data, open(self.get_path('meta.json'), 'wb'), indent=4)
 
@@ -271,6 +277,7 @@ class Collection(object):
         self.outline = Outline.from_dict(self, data['outline'])
         self.custom_siteconfig=data['custom_siteconfig']
         self.siteconfig = SiteConfigHandler(custom_siteconfig=self.custom_siteconfig)
+        self.img_contributors = data['img_contributors']
 
     def get_path(self, fn):
         return os.path.join(self.basedir, fn)
@@ -339,7 +346,6 @@ def coll_from_zip(basedir, env, status_callback=None):
     if isinstance(env, basestring):
         from mwlib import wiki
         env = wiki.makewiki(env)
-
     coll = Collection(basedir=basedir,
                       title=env.metabook.title or '',
                       subtitle=env.metabook.subtitle or '',
@@ -348,6 +354,10 @@ def coll_from_zip(basedir, env, status_callback=None):
     missing_images = []
     num_items = len(env.metabook.items)
     progress_inc = 100.0/num_items
+
+    license_checker =  LicenseChecker(image_db=env.images, filter_type='blacklist')
+    license_checker.readLicensesCSV()
+
     for n, item in enumerate(env.metabook.walk()):
         if item.type == 'chapter':
             chapter = Chapter(item.title)
@@ -395,6 +405,8 @@ def coll_from_zip(basedir, env, status_callback=None):
                 if not fn and title not in missing_images:
                     print 'image not found %r' % src
                     missing_images.append(title)
+                else:
+                    _extract_license_info(coll, item.wiki.env.images, title, license_checker)
         if num_items > config.max_parsetree_num:
             del wp.tree
         coll.append(wp)
@@ -402,6 +414,16 @@ def coll_from_zip(basedir, env, status_callback=None):
             status_callback(progress=n*progress_inc)
     return coll
 
+def _extract_license_info(coll, img_db, img_title, license_checker):
+    if img_title not in coll.img_contributors:
+        url = img_db.getDescriptionURL(img_title)
+        contributors = img_db.getContributors(img_title)
+        license = license_checker.getLicenseDisplayName(img_title)
+        coll.img_contributors[img_title] = dict(
+            url=url,
+            contributors=contributors,
+            license=license,
+            )
 
 def collection_from_html_frag(frag, collection_dir=None):
     if not collection_dir:

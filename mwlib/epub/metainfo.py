@@ -39,9 +39,27 @@ def getArticleMetainfo(chapter, collection):
     for lvl, webpage in collection.outline.walk():
         contributors = _filterAnonIpEdits(webpage.contributors)
         m = E.li(E.b(webpage.title), ' ',
-                 E.i(_('Source')), ': ', webpage.url, ' ',
+                 E.i(_('Source')), ': ',
+                 E.a(webpage.url, href=webpage.url), ' ',
                  E.i(_('Contributors')), ': ', contributors,
                  style='margin-bottom:1em;'
+                 )
+        metainfo.append(m)
+
+    xml = metainfo_skeleton % dict(title=xmlescape(_(chapter.title)),
+                                   metainfo=etree.tostring(metainfo))
+    return xml
+
+
+def getImageMetainfo(chapter, collection):
+    metainfo = E.ul(style='list-style-type:none;font-size:75%')
+    for img_title, info in collection.img_contributors.items():
+        contributors = _filterAnonIpEdits(info['contributors'])
+        m = E.li(E.b(img_title), ' ',
+                 E.i(_('Source')), ': ',
+                 E.a(info['url'], href=info['url']), ' ',
+                 E.i(_('License')), ': ', info['license'], ' ',
+                 E.i(_('Contributors')), ': ', contributors,
                  )
         metainfo.append(m)
 

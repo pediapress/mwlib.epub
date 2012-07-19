@@ -274,6 +274,11 @@ class EpubWriter(object):
         chapter.xml = metainfo.getArticleMetainfo(chapter, self.coll)
         self.container.addArticle(chapter)
 
+        chapter = collection.Chapter(_('Image Sources, Licenses and Contributors'))
+        chapter.id = '_imagesources'
+        chapter.xml = metainfo.getImageMetainfo(chapter, self.coll)
+        self.container.addArticle(chapter)
+
     def processChapter(self, chapter):
         self.num_chapters = getattr(self, 'num_chapters', 0) + 1
         chapter.id = 'chapter_%02d' % self.num_chapters

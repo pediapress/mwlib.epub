@@ -30,7 +30,6 @@ def _filterAnonIpEdits(authors):
     if authors:
         authors_text = ', '.join([a for a in authors if a != 'ANONIPEDITS:0'])
         authors_text = re.sub(u'ANONIPEDITS:(?P<num>\d+)', u'\g<num> %s' % _(u'anonymous edits'), authors_text)
-        authors_text = xmlescape(authors_text)
     else:
         authors_text = '-'
     return authors_text
@@ -39,13 +38,13 @@ def getArticleMetainfo(chapter, collection):
     metainfo = E.ul(style='list-style-type:none;font-size:75%')
     for lvl, webpage in collection.outline.walk():
         contributors = _filterAnonIpEdits(webpage.contributors)
-        m = E.li(E.b(xmlescape(webpage.title)), ' ',
-                 E.i(_('Source')), ': ', xmlescape(webpage.url), ' ',
-                 E.i(_('Contributors')), ': ', xmlescape(contributors),
+        m = E.li(E.b(webpage.title), ' ',
+                 E.i(_('Source')), ': ', webpage.url, ' ',
+                 E.i(_('Contributors')), ': ', contributors,
                  style='margin-bottom:1em;'
                  )
         metainfo.append(m)
 
-    xml = metainfo_skeleton % dict(title=xmlescape(_(chapter.title)), metainfo=etree.tostring(metainfo))
-
+    xml = metainfo_skeleton % dict(title=xmlescape(_(chapter.title)),
+                                   metainfo=etree.tostring(metainfo))
     return xml

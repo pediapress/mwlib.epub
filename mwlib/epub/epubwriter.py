@@ -186,10 +186,10 @@ class EpubContainer(object):
                                          title=webpage.title,
                                          type='article' if isinstance(webpage, collection.WebPage) else 'chapter'))
 
-
         if getattr(webpage, 'tree', False) != False:
             css_fn = webpage.tree.get('css_fn')
-            self.link_file(css_fn, 'OPS/wp.css') # fixme proper name
+            if css_fn:
+                self.link_file(css_fn, 'OPS/wp.css')
             used_images = [src[len(config.img_rel_path):] for src in webpage.tree.xpath('//img/@src')]
         else:
             used_images = []
@@ -245,26 +245,39 @@ class EpubWriter(object):
             return
         titlepage = collection.Chapter(self.coll.title)
         titlepage.id = 'titlepage'
-        titlepage.images = {}
-        # titlepage.images['title.png'] = os.path.join(os.path.dirname(__file__), 'title.png')
-        titlepage.xml = '''<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head><title>%(title)s</title></head>
-<body>
+        E = ElementMaker()
+        body = E.body(
+            E.h1(self.coll.title,
+                 style="margin-top:20%%;font-size:300%%;text-align:center;"),
+            E.h2(self.coll.subtitle,
+                 style="margin-top:1em;font-size:200%%;text-align:center;"),
+            E.h3(self.coll.editor,
+                 style="margin-top:1em;font-size:100%%;text-align:center;"),
+            )
+        titlepage.tree =  E.html(
+            E.head(
+                E.title(self.coll.title),
+                ),
+            body,
+            xmlns="http://www.w3.org/1999/xhtml",
+            )
 
-<!-- <div><img src="images/title.png" width="600" alt="" /></div> -->
+        if any('wikipedia.org' in url for url in self.coll.url2webpage):
+            img_src = 'wikipedia_logo.png'
+            titlepage.images = {img_src:
+                                os.path.join(os.path.dirname(__file__), img_src)}
+            body.append(E.div(E.img(src='images/'+img_src,
+                                    width='50%', alt='',
+                                    ),
+                              style='text-align:center;margin-top:4em;'
+                              ))
 
-
-<h1 style="margin-top:20%%;font-size:300%%;text-align:center;">%(title)s</h1>
-<h2 style="margin-top:1em;font-size:200%%;text-align:center;">%(subtitle)s</h2>
-<h3 style="margin-top:1em;font-size:100%%;text-align:center;">%(editor)s</h3>
-
-</body>
-</html>
-        ''' % dict(title=xmlescape(self.coll.title),
-                   subtitle=xmlescape(self.coll.subtitle),
-                   editor=xmlescape(self.coll.editor),)
+        titlepage.xml = etree.tostring(titlepage.tree,
+                                       pretty_print=True,
+                                       encoding='utf-8',
+                                       xml_declaration=True,
+                                       doctype='<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">'
+                                       )
         self.container.addArticle(titlepage)
 
     def processMetaInfo(self):

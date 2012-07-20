@@ -27,9 +27,10 @@ _ = lambda txt: txt # FIXME: add proper translation support
 
 ArticleInfo = namedtuple('ArticleInfo', 'id path title type')
 
+E = ElementMaker()
+
 def serialize(f):
     return lambda : etree.tostring(f(), pretty_print=True)
-
 
 class EpubContainer(object):
 
@@ -79,8 +80,6 @@ class EpubContainer(object):
         self.zf.close()
 
     def writeNCX(self):
-        E = ElementMaker()
-
         tree = E.ncx({'version': '2005-1',
                       'xmlns': 'http://www.daisy.org/z3986/2005/ncx/'},
                      E.head(*[E.meta({'name': item[0],
@@ -116,8 +115,6 @@ class EpubContainer(object):
     def writeOPF(self):
         nsmap = {'dc': "http://purl.org/dc/elements/1.1/",
                  'opf': "http://www.idpf.org/2007/opf"}
-        E = ElementMaker()
-
         def writeOPF_metadata():
             E = ElementMaker(nsmap=nsmap)
             DC = ElementMaker(namespace=nsmap['dc'])
@@ -245,7 +242,6 @@ class EpubWriter(object):
             return
         titlepage = collection.Chapter(self.coll.title)
         titlepage.id = 'titlepage'
-        E = ElementMaker()
         body = E.body(
             E.h1(self.coll.title,
                  style="margin-top:20%%;font-size:300%%;text-align:center;"),
@@ -356,7 +352,6 @@ class EpubWriter(object):
 
     def serializeArticle(self, node):
         assert not node.find('.//body'), 'error: node contains BODY tag'
-        E = ElementMaker()
 
         html = E.html({'xmlns':"http://www.w3.org/1999/xhtml"},
                       E.head(E.meta({'http-equiv':"Content-Type",
@@ -377,13 +372,10 @@ class EpubWriter(object):
         xml = etree.tostring(html,
                              encoding='utf-8',
                              method='xml',
-                             xml_declaration=False,
+                             xml_declaration=True,
                              pretty_print=True,
+                             doctype='<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">'
                              )
-        xml = '\n'.join(['<?xml version="1.0" encoding="UTF-8" ?>',
-                         '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">',
-                         xml])
-
         return xml
 
 def render_fragment(epub_fn, fragment, dump_xhtml=False):

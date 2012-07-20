@@ -37,6 +37,8 @@ def _filterAnonIpEdits(authors):
 def getArticleMetainfo(chapter, collection):
     metainfo = E.ul(style='list-style-type:none;font-size:50%')
     for lvl, webpage in collection.outline.walk():
+        if not hasattr(webpage, 'contributors'):
+            continue
         contributors = _filterAnonIpEdits(webpage.contributors)
         m = E.li(E.b(webpage.title), ' ',
                  E.i(_('Source')), ': ',

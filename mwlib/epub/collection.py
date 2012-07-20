@@ -406,7 +406,9 @@ def coll_from_zip(basedir, env, status_callback=None):
                     print 'image not found %r' % src
                     missing_images.append(title)
                 else:
-                    _extract_license_info(coll, item.wiki.env.images, title, license_checker)
+                    if not img.get('class') == 'tex': # skip math formulas
+                        _extract_license_info(coll, item.wiki.env.images,
+                                              title, license_checker)
         if num_items > config.max_parsetree_num:
             del wp.tree
         coll.append(wp)

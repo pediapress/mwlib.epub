@@ -35,7 +35,7 @@ def _filterAnonIpEdits(authors):
     return authors_text
 
 def getArticleMetainfo(chapter, collection):
-    metainfo = E.ul(style='list-style-type:none;font-size:75%')
+    metainfo = E.ul(style='list-style-type:none;font-size:50%')
     for lvl, webpage in collection.outline.walk():
         contributors = _filterAnonIpEdits(webpage.contributors)
         m = E.li(E.b(webpage.title), ' ',
@@ -52,7 +52,7 @@ def getArticleMetainfo(chapter, collection):
 
 
 def getImageMetainfo(chapter, collection):
-    metainfo = E.ul(style='list-style-type:none;font-size:75%')
+    metainfo = E.ul(style='list-style-type:none;font-size:50%')
     for img_title, info in collection.img_contributors.items():
         contributors = _filterAnonIpEdits(info['contributors'])
         m = E.li(E.b(img_title), ' ',

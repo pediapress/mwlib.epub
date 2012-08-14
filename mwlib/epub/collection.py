@@ -374,7 +374,11 @@ def coll_from_zip(basedir, env, status_callback=None):
         if isinstance(url, str):
             url = unicode(url, 'utf-8')
         data = item.wiki.getHTML(title, item.revision)
-        html = data['text']['*']
+        try:
+            html = data['text']['*']
+        except KeyError:
+            print 'WARNING: article missing, skipping %r' % item.title
+            continue
         if isinstance(html, str):
             html = unicode(html, 'utf-8')
         html = '<div id="content"><h1>%s</h1>\n\n%s</div>' % (title.encode('utf-8'), html.encode('utf-8'))

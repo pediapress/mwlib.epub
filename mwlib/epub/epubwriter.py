@@ -27,9 +27,10 @@ _ = lambda txt: txt # FIXME: add proper translation support
 
 ArticleInfo = namedtuple('ArticleInfo', 'id path title type')
 
+E = ElementMaker()
+
 def serialize(f):
     return lambda : etree.tostring(f(), pretty_print=True)
-
 
 class EpubContainer(object):
 
@@ -79,8 +80,6 @@ class EpubContainer(object):
         self.zf.close()
 
     def writeNCX(self):
-        E = ElementMaker()
-
         tree = E.ncx({'version': '2005-1',
                       'xmlns': 'http://www.daisy.org/z3986/2005/ncx/'},
                      E.head(*[E.meta({'name': item[0],
@@ -116,8 +115,6 @@ class EpubContainer(object):
     def writeOPF(self):
         nsmap = {'dc': "http://purl.org/dc/elements/1.1/",
                  'opf': "http://www.idpf.org/2007/opf"}
-        E = ElementMaker()
-
         def writeOPF_metadata():
             E = ElementMaker(nsmap=nsmap)
             DC = ElementMaker(namespace=nsmap['dc'])
@@ -186,10 +183,10 @@ class EpubContainer(object):
                                          title=webpage.title,
                                          type='article' if isinstance(webpage, collection.WebPage) else 'chapter'))
 
-
         if getattr(webpage, 'tree', False) != False:
             css_fn = webpage.tree.get('css_fn')
-            self.link_file(css_fn, 'OPS/wp.css') # fixme proper name
+            if css_fn:
+                self.link_file(css_fn, 'OPS/wp.css')
             used_images = [src[len(config.img_rel_path):] for src in webpage.tree.xpath('//img/@src')]
         else:
             used_images = []
@@ -245,26 +242,38 @@ class EpubWriter(object):
             return
         titlepage = collection.Chapter(self.coll.title)
         titlepage.id = 'titlepage'
-        titlepage.images = {}
-        # titlepage.images['title.png'] = os.path.join(os.path.dirname(__file__), 'title.png')
-        titlepage.xml = '''<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head><title>%(title)s</title></head>
-<body>
+        body = E.body(
+            E.h1(self.coll.title,
+                 style="margin-top:20%%;font-size:300%%;text-align:center;"),
+            E.h2(self.coll.subtitle,
+                 style="margin-top:1em;font-size:200%%;text-align:center;"),
+            E.h3(self.coll.editor,
+                 style="margin-top:1em;font-size:100%%;text-align:center;"),
+            )
+        titlepage.tree =  E.html(
+            E.head(
+                E.title(self.coll.title),
+                ),
+            body,
+            xmlns="http://www.w3.org/1999/xhtml",
+            )
 
-<!-- <div><img src="images/title.png" width="600" alt="" /></div> -->
+        if any('wikipedia.org' in url for url in self.coll.url2webpage):
+            img_src = 'wikipedia_logo.png'
+            titlepage.images = {img_src:
+                                os.path.join(os.path.dirname(__file__), img_src)}
+            body.append(E.div(E.img(src='images/'+img_src,
+                                    width='50%', alt='',
+                                    ),
+                              style='text-align:center;margin-top:4em;'
+                              ))
 
-
-<h1 style="margin-top:20%%;font-size:300%%;text-align:center;">%(title)s</h1>
-<h2 style="margin-top:1em;font-size:200%%;text-align:center;">%(subtitle)s</h2>
-<h3 style="margin-top:1em;font-size:100%%;text-align:center;">%(editor)s</h3>
-
-</body>
-</html>
-        ''' % dict(title=xmlescape(self.coll.title),
-                   subtitle=xmlescape(self.coll.subtitle),
-                   editor=xmlescape(self.coll.editor),)
+        titlepage.xml = etree.tostring(titlepage.tree,
+                                       pretty_print=True,
+                                       encoding='utf-8',
+                                       xml_declaration=True,
+                                       doctype='<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">'
+                                       )
         self.container.addArticle(titlepage)
 
     def processMetaInfo(self):
@@ -343,7 +352,6 @@ class EpubWriter(object):
 
     def serializeArticle(self, node):
         assert not node.find('.//body'), 'error: node contains BODY tag'
-        E = ElementMaker()
 
         html = E.html({'xmlns':"http://www.w3.org/1999/xhtml"},
                       E.head(E.meta({'http-equiv':"Content-Type",
@@ -364,13 +372,10 @@ class EpubWriter(object):
         xml = etree.tostring(html,
                              encoding='utf-8',
                              method='xml',
-                             xml_declaration=False,
+                             xml_declaration=True,
                              pretty_print=True,
+                             doctype='<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">'
                              )
-        xml = '\n'.join(['<?xml version="1.0" encoding="UTF-8" ?>',
-                         '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">',
-                         xml])
-
         return xml
 
 def render_fragment(epub_fn, fragment, dump_xhtml=False):

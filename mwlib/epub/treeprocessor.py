@@ -190,8 +190,22 @@ class TreeProcessor(object):
         self._fixClasses(article)
         self._filterTags(article)
         self._filterStyles(article)
+        self._transformInvalidTags(article)
         self._removeInvalidTags(article)
         self._filterContent(article)
+
+    def _transformInvalidTags(self, article):
+        '''Transform tags invalid in an epubs to something that makes sense if possible'''
+        # <u> -> <span style="text-decoration:underline;">
+        # font
+        queries = [{'context_node':'//center', # <center> -> <div style="text-align:center;">
+                    'node':'.',
+                    'repl_node':'div',
+                    'repl_attrs':{'style':'text-align:center;'}
+                    },
+                   ]
+        self.transformNodes(article, custom_queries=queries)
+
 
 
     def _filterStyles(self, article):

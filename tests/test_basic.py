@@ -25,7 +25,7 @@ def render_frag(frag, tmpdir, epub_fn):
                            full_fn])
     return xhtml, ret, stdout, stderr
 
-def dump_tree(root):
+def show(root):
     #print etree.tostring(root, pretty_print=True, encoding='utf-8')
     print etree.tostring(root, pretty_print=True)
 
@@ -55,9 +55,9 @@ bla2
 <p>bla3</p>
     '''
 
-    xhtml, ret, stdout, stderr = render_frag(frag, tmpdir, 'ref_links.epub')
+    xhtml, ret, stdout, stderr = render_frag(frag, tmpdir, 'references1.epub')
     tree = etree.HTML(xhtml)
-    dump_tree(tree)
+    show(tree)
 
     assert not tree.xpath('//sup[contains(@id, "cite_ref")]')
     assert not tree.xpath('//li[contains(@id, "cite_note")]')
@@ -80,11 +80,24 @@ def test_remove_references_2(tmpdir):
 </ol>
     '''
 
-    xhtml, ret, stdout, stderr = render_frag(frag, tmpdir, 'ref_links.epub')
+    xhtml, ret, stdout, stderr = render_frag(frag, tmpdir, 'references2.epub')
     tree = etree.HTML(xhtml)
-    dump_tree(tree)
+    show(tree)
 
     assert not tree.xpath('//sup[contains(@id, "cite_ref")]')
     assert not tree.xpath('//li[contains(@id, "cite_note")]')
     assert not tree.xpath('//span[@id="Einzelnachweise"]')
     assert tree.xpath('//h2[text()="noremove"]')
+
+
+def test_convert_center(tmpdir):
+    frag='''\
+<center>
+this is centered text
+</center>
+'''
+    xhtml, ret, stdout, stderr = render_frag(frag, tmpdir, 'convert_center.epub')
+    tree = etree.HTML(xhtml)
+    show(tree)
+    assert len(tree.xpath('//center')) == 0
+    assert ''.join(tree.xpath('//div')[0].itertext()).strip() == 'this is centered text'

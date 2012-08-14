@@ -203,6 +203,11 @@ class TreeProcessor(object):
                     'repl_node':'div',
                     'repl_attrs':{'style':'text-align:center;'}
                     },
+                   {'context_node':'//font', # <font> -> <span>
+                    'node':'.',
+                    'repl_node':'span',
+                    'repl_attrs':{}
+                    },
                    ]
         self.transformNodes(article, custom_queries=queries)
 

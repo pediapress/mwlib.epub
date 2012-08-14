@@ -101,3 +101,13 @@ this is centered text
     show(tree)
     assert len(tree.xpath('//center')) == 0
     assert ''.join(tree.xpath('//div')[0].itertext()).strip() == 'this is centered text'
+
+def test_convert_font(tmpdir):
+    frag='''\
+<font color="grey">fail</font>
+'''
+    xhtml, ret, stdout, stderr = render_frag(frag, tmpdir, 'convert_font.epub')
+    tree = etree.HTML(xhtml)
+    show(tree)
+    assert len(tree.xpath('//font')) == 0
+    assert ''.join(tree.xpath('//span')[0].itertext()).strip() == 'fail'

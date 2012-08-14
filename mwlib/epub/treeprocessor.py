@@ -98,6 +98,28 @@ class TreeProcessor(object):
         self.clearStyles(article)
         self.makeValidXhtml(article)
         self.removeExternalWikiLinks(article)
+        self.removeReferences(article)
+
+    def removeReferences(self, article):
+        '''remove the reference section and all links pointing to individual items'''
+
+        ref_list_item_path = 'descendant-or-self::ol[@class="references"]'
+
+        # remove reference list section
+        for heading in article.tree.xpath('//h2'):
+            for item in heading.itersiblings():
+                if item.tag in ['h2', 'h3', 'h4', 'h5', 'h6']:
+                    break
+                # if we find any reference list item we remove the preceeding heading
+                if item.xpath(ref_list_item_path):
+                    remove_node(heading)
+                    break
+        # remove links to "footnotes" in reference section
+        for ref_link in article.tree.xpath('//sup[@class="reference"]'):
+            remove_node(ref_link)
+        # remove "footnotes"/items in reference list
+        for ref_list_item in article.tree.xpath(ref_list_item_path):
+            remove_node(ref_list_item)
 
     def removeExternalWikiLinks(self, article):
         '''remove all links to wikipedia articles outside of the epub file '''

@@ -19,3 +19,4 @@ include mwlib/epub/wp.css
 include setup.py
 include tests/test_basic.py
 include tests/test_valid_xhtml.py
+include tox.ini

@@ -4,3 +4,7 @@ build
 dist
 *~
 *.epub
+/.tox/
+__pycache__/
+.ropeproject/
+/README.html

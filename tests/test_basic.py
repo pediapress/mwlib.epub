@@ -6,12 +6,14 @@
 
 import subprocess
 
-import pytest
+import pytest, py
 from lxml import etree
 
 from mwlib.epub import treeprocessor
 from mwlib.epub import collection
 from mwlib.epub import epubwriter
+
+have_epubcheck = bool(py.path.local.sysfind("epubcheck"))
 
 def run_cmd(cmd):
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -21,8 +23,11 @@ def run_cmd(cmd):
 def render_frag(frag, tmpdir, epub_fn):
     full_fn = str(tmpdir.join(epub_fn))
     xhtml = epubwriter.render_fragment(full_fn, frag, dump_xhtml=True)
-    ret, stdout, stderr = run_cmd(['epubcheck',
-                           full_fn])
+    if have_epubcheck:
+        ret, stdout, stderr = run_cmd(['epubcheck',
+                                       full_fn])
+    else:
+        ret, stdout, stderr = 0, "", ""
     return xhtml, ret, stdout, stderr
 
 def show(root):

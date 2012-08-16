@@ -3,8 +3,19 @@
 # Copyright (c) 2011 PediaPress GmbH
 # See README.txt for additional licensing information.
 
-import os
+import sys, os
+
+if not (2, 5) < sys.version_info[:2] < (3, 0):
+    sys.exit("""
+***** ERROR ***********************************************************
+* mwlib.epub does not work with python %s.%s. You need to use python 2.6
+* or 2.7
+***********************************************************************
+""" % sys.version_info[:2])
+
+
 from setuptools import setup, Extension
+
 
 def get_version():
     d = {}

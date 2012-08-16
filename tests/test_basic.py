@@ -5,7 +5,7 @@
 # See README.txt for additional licensing information.
 
 import subprocess
-
+import os
 import pytest, py
 from lxml import etree
 
@@ -33,6 +33,16 @@ def render_frag(frag, tmpdir, epub_fn):
 def show(root):
     #print etree.tostring(root, pretty_print=True, encoding='utf-8')
     print etree.tostring(root, pretty_print=True)
+
+def test_render_zip(tmpdir):
+    epub_fn = str(tmpdir.join('out.epub'))
+    ret, stdout, stderr = run_cmd([
+        'mw-render',
+        '-w', 'epub',
+        '-o', epub_fn,
+        '-c', os.path.join(os.path.dirname(__file__), 'test.zip')
+        ])
+    assert ret == 0
 
 def test_safe_xml():
     strings = [('http://blub.com;', 'http___blub_com_'),

@@ -6,7 +6,7 @@
 
 import os
 import urllib
-import json
+import simplejson as json
 import re
 from lxml import etree
 

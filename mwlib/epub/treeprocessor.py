@@ -9,7 +9,7 @@ from StringIO import StringIO
 import urlparse
 import urllib
 import re
-import json
+import simplejson as json
 
 from lxml import etree
 import cssutils

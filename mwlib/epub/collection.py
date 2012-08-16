@@ -18,10 +18,7 @@ import shutil
 import subprocess
 from ordereddict import OrderedDict
 #from gevent.pool import Pool
-try:
-    import simplejson as json
-except ImportError:
-    import json
+import simplejson as json
 
 from mwlib.epub.siteconfig import SiteConfigHandler
 from mwlib.epub import config

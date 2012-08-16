@@ -16,8 +16,7 @@ import urllib2
 import urlparse
 import shutil
 import subprocess
-from collections import OrderedDict
-
+from ordereddict import OrderedDict
 #from gevent.pool import Pool
 try:
     import simplejson as json

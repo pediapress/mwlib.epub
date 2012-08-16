@@ -11,7 +11,7 @@ def get_version():
     execfile( 'mwlib/epub/_version.py', d, d)
     return d["version"]
 
-install_requires = ['mwlib', 'lxml', 'cssutils']
+install_requires = ['mwlib', 'lxml', 'cssutils', 'ordereddict']
 
 
 def main():

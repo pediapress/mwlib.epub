@@ -369,9 +369,9 @@ def writer(env, output,
            dump_xhtml=False
            ):
     if status_callback:
-        image_scaling_status = status_callback.getSubRange(1, 50)
+        image_scaling_status = status_callback.getSubRange(1, 65)
         image_scaling_status(status='scaling images')
-        rendering_status = status_callback.getSubRange(51, 100)
+        rendering_status = status_callback.getSubRange(66, 100)
 
     tmpdir = tempfile.mkdtemp()
     zipfn = env

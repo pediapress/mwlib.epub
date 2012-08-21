@@ -328,7 +328,7 @@ def coll_from_zip(basedir, env, status_callback=None):
                       editor=env.metabook.editor or '',
                       )
     missing_images = []
-    num_items = len(env.metabook.items)
+    num_items = len(env.metabook.walk())
     progress_inc = 100.0/num_items
 
     license_checker =  LicenseChecker(image_db=env.images, filter_type='blacklist')

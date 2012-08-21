@@ -244,11 +244,11 @@ class EpubWriter(object):
         titlepage.id = 'titlepage'
         body = E.body(
             E.h1(self.coll.title,
-                 style="margin-top:20%%;font-size:300%%;text-align:center;"),
+                 style="margin-top:20%;font-size:200%;text-align:center;"),
             E.h2(self.coll.subtitle,
-                 style="margin-top:1em;font-size:200%%;text-align:center;"),
+                 style="margin-top:1em;font-size:150%;text-align:center;"),
             E.h3(self.coll.editor,
-                 style="margin-top:1em;font-size:100%%;text-align:center;"),
+                 style="margin-top:1em;font-size:100%;text-align:center;"),
             )
         titlepage.tree =  E.html(
             E.head(
@@ -295,7 +295,7 @@ class EpubWriter(object):
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head><title>%(title)s</title></head>
-<body><h1 style="margin-top:15%%;font-size:300%%;text-align:center;">%(title)s</h1></body>
+<body><h1 style="margin-top:15%%;font-size:200%%;text-align:center;">%(title)s</h1></body>
 </html>
         ''' % dict(title=xmlescape(chapter.title))
 

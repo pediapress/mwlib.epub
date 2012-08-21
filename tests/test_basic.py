@@ -126,3 +126,11 @@ def test_convert_font(tmpdir):
     show(tree)
     assert len(tree.xpath('//font')) == 0
     assert ''.join(tree.xpath('//span')[0].itertext()).strip() == 'fail'
+
+def test_empty_link(tmpdir):
+    frag = '''\
+<p>blub</p>
+<a name="bla" id="blub"></a>
+<p>bla</p>
+    '''
+    xhtml, ret, stdout, stderr = render_frag(frag, tmpdir, 'empty_link.epub')

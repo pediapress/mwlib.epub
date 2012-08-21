@@ -22,6 +22,7 @@ from lxml.builder import ElementMaker
 from mwlib.epub import config
 from mwlib.epub.treeprocessor import TreeProcessor, safe_xml_id, clean_url, remove_node
 from mwlib.epub import collection
+from mwlib.epub.utils import misc
 
 _ = lambda txt: txt # FIXME: add proper translation support
 
@@ -242,38 +243,28 @@ class EpubWriter(object):
             return
         titlepage = collection.Chapter(self.coll.title)
         titlepage.id = 'titlepage'
-        body = E.body(
-            E.h1(self.coll.title,
-                 style="margin-top:20%;font-size:200%;text-align:center;"),
-            E.h2(self.coll.subtitle,
-                 style="margin-top:1em;font-size:150%;text-align:center;"),
-            E.h3(self.coll.editor,
-                 style="margin-top:1em;font-size:100%;text-align:center;"),
-            )
-        titlepage.tree =  E.html(
-            E.head(
-                E.title(self.coll.title),
-                ),
-            body,
-            xmlns="http://www.w3.org/1999/xhtml",
-            )
+        body_content = [E.h1(self.coll.title,
+                             style="margin-top:20%;font-size:200%;text-align:center;"),
+                        E.h2(self.coll.subtitle,
+                             style="margin-top:1em;font-size:150%;text-align:center;"),
+                        E.h3(self.coll.editor,
+                             style="margin-top:1em;font-size:100%;text-align:center;"),
+                        ]
 
         if any('wikipedia.org' in url for url in self.coll.url2webpage):
             img_src = 'wikipedia_logo.jpg'
             titlepage.images = {img_src:
                                 os.path.join(os.path.dirname(__file__), img_src)}
-            body.append(E.div(E.img(src='images/'+img_src,
-                                    width='50%', alt='',
-                                    ),
-                              style='text-align:center;margin-top:4em;'
-                              ))
-
-        titlepage.xml = etree.tostring(titlepage.tree,
-                                       pretty_print=True,
-                                       encoding='utf-8',
-                                       xml_declaration=True,
-                                       doctype='<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">'
-                                       )
+            body_content.append(E.div(E.img(src='images/'+img_src,
+                                            width='50%', alt='',
+                                            ),
+                                      style='text-align:center;margin-top:4em;'
+                                      ))
+        tree = misc.xhtml_page(title=self.coll.title,
+                               body_content=body_content,
+                               flatten=False)
+        titlepage.tree = tree
+        titlepage.xml = misc.flatten_tree(tree)
         self.container.addArticle(titlepage)
 
     def processMetaInfo(self):
@@ -291,14 +282,13 @@ class EpubWriter(object):
     def processChapter(self, chapter):
         self.num_chapters = getattr(self, 'num_chapters', 0) + 1
         chapter.id = 'chapter_%02d' % self.num_chapters
-        chapter.xml = '''<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head><title>%(title)s</title></head>
-<body><h1 style="margin-top:15%%;font-size:200%%;text-align:center;">%(title)s</h1></body>
-</html>
-        ''' % dict(title=xmlescape(chapter.title))
-
+        title = xmlescape(chapter.title)
+        chapter.xml = misc.xhtml_page(
+            title=title,
+            body_content=[E.h1({'style':
+                                'margin-top:15%;font-size:200%;text-align:center;'},
+                               title)]
+            )
         self.container.addArticle(chapter)
 
 
@@ -369,14 +359,7 @@ class EpubWriter(object):
         html.append(body)
         body.extend(node)
 
-        xml = etree.tostring(html,
-                             encoding='utf-8',
-                             method='xml',
-                             xml_declaration=True,
-                             pretty_print=True,
-                             doctype='<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">'
-                             )
-        return xml
+        return misc.flatten_tree(html)
 
 def render_fragment(epub_fn, fragment, dump_xhtml=False):
     collection_dir = os.path.dirname(epub_fn)

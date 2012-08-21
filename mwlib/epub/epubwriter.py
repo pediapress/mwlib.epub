@@ -259,7 +259,7 @@ class EpubWriter(object):
             )
 
         if any('wikipedia.org' in url for url in self.coll.url2webpage):
-            img_src = 'wikipedia_logo.png'
+            img_src = 'wikipedia_logo.jpg'
             titlepage.images = {img_src:
                                 os.path.join(os.path.dirname(__file__), img_src)}
             body.append(E.div(E.img(src='images/'+img_src,

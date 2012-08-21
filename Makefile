@@ -7,7 +7,7 @@ RST2HTML ?= rst2html.py
 all:: MANIFEST.in
 
 MANIFEST.in:: 
-	./make_manifest.py
+	./make-manifest
 
 README.html: README.rst
 	$(RST2HTML) README.rst >README.html

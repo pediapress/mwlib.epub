@@ -9,6 +9,12 @@ from lxml import etree
 
 E = ElementMaker()
 
+def get_css_link_element():
+    return E.link(rel='stylesheet',
+                  href='wp.css',
+                  type='text/css')
+
+
 def flatten_tree(tree):
     return etree.tostring(tree,
                           pretty_print=True,
@@ -19,11 +25,12 @@ def flatten_tree(tree):
                           )
 
 
-def xhtml_page(title='', body_content=None, basic_styles=True, flatten=True):
+def xhtml_page(title='', body_content=None, flatten=True):
     head = E.head(
         E.meta({'http-equiv':"Content-Type",
                 'content': "application/xhtml+xml; charset=utf-8"}),
         E.title(title),
+        get_css_link_element(),
         )
     # add styles in case
     body = E.body()

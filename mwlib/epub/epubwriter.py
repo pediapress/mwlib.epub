@@ -185,9 +185,6 @@ class EpubContainer(object):
                                          type='article' if isinstance(webpage, collection.WebPage) else 'chapter'))
 
         if getattr(webpage, 'tree', False) != False:
-            css_fn = webpage.tree.get('css_fn')
-            if css_fn:
-                self.link_file(css_fn, 'OPS/wp.css')
             used_images = [src[len(config.img_rel_path):] for src in webpage.tree.xpath('//img/@src')]
         else:
             used_images = []
@@ -215,6 +212,8 @@ class EpubWriter(object):
             print 'created dir'
             os.makedirs(self.target_dir)
         self.container = EpubContainer(self.output, self.coll)
+        self.container.link_file(os.path.join(os.path.dirname(__file__), 'wp.css'),
+                                 'OPS/wp.css')
 
     def closeContainer(self):
         self.container.close()
@@ -316,10 +315,6 @@ class EpubWriter(object):
                 img.attrib['src'] = zip_rel_path
             else:
                 remove_node(img)
-        #FIXME: fix paths of css and other resource files.
-        #intra-collection links need to be detected and remapped as well
-        for link in webpage.tree.findall('.//link'):
-            link.set('href','wp.css')
 
         target_ids = [safe_xml_id(_id) for _id in webpage.tree.xpath('.//@id')]
         for a in webpage.tree.findall('.//a'):

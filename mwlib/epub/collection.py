@@ -20,10 +20,11 @@ from ordereddict import OrderedDict
 #from gevent.pool import Pool
 import simplejson as json
 
+from mwlib.writer.licensechecker import LicenseChecker
+
 from mwlib.epub.siteconfig import SiteConfigHandler
 from mwlib.epub import config
-
-from mwlib.writer.licensechecker import LicenseChecker
+from mwlib.epub.utils import misc
 
 known_image_exts = set(['.jpg', '.jpeg', '.gif', '.png']) # FIXME
 
@@ -116,31 +117,13 @@ class WebPage(object):
                 hires_path = img.xpath(path_query, namespaces={'re':regexpNS}).strip()
                 img.set('hiressrc', hires_path)
 
-    def handleCss(self, article, styles=[]):
-        css_fn = 'wp.css' # FIXME make this configurable
-
-        css_path_orig = os.path.join(os.path.dirname(__file__), css_fn)
-        css_path = self.get_path(css_fn)
-        try:
-            shutil.copy(css_path_orig, css_path)
-        except IOError:
-            print 'css file not found'
-            return
-        self.css_path = css_path
-
-        link = etree.Element('link',
-                            rel='stylesheet',
-                            href=self.css_path,
-                            type='text/css')
-
+    def add_head(self, article):
+        link = misc.get_css_link_element()
         head = article.xpath('//head')
         if not head:
             head = etree.Element('head')
             article.insert(0, head)
         head.append(link)
-        for style in styles:
-            head.append(style)
-        article.set('css_fn', css_path)
 
     def get_styles(self, tree):
         styles = tree.xpath('//head//style[@type="text/css"]')
@@ -156,12 +139,9 @@ class WebPage(object):
             content = root.xpath(content_filter)
         else:
             content = root
-        styles = self.get_styles(root)
         art = etree.Element('article')
         art.extend(content)
-
-        self.handleCss(art, styles)
-
+        self.add_head(art)
         self._add_hires_img_src(art)
         return art
 

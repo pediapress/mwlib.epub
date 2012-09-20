@@ -377,3 +377,8 @@ div.gallerytext{
   word-wrap:break-word;
   border-top: 1px dashed #ccc;
 }
+
+.metainfo {
+  font-size: 0.5em;
+  list-style-type:none;
+}

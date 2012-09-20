@@ -1,3 +1,4 @@
+include KNOWN_READER_ISSUES.rst
 include MANIFEST.in
 include README.rst
 include mwlib/__init__.py

@@ -5,26 +5,11 @@
 # See README.txt for additional licensing information.
 
 import re
-
-from xml.sax.saxutils import escape as xmlescape
-
-from lxml import etree
 from lxml.builder import ElementMaker
+from utils.misc import xhtml_page
 
 _ = lambda txt: txt # FIXME: add proper translation support
 E = ElementMaker()
-
-metainfo_skeleton = '''<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head><title>%(title)s</title></head>
-<body><h1 style="margin-top:15%%;font-size:200%%;text-align:center;">%(title)s</h1>
-
-%(metainfo)s
-
-</body>
-</html>
-'''
 
 def _filterAnonIpEdits(authors):
     if authors:
@@ -35,7 +20,7 @@ def _filterAnonIpEdits(authors):
     return authors_text
 
 def getArticleMetainfo(chapter, collection):
-    metainfo = E.ul(style='list-style-type:none;font-size:50%')
+    metainfo = E.ul({'class': 'metainfo'})
     for lvl, webpage in collection.outline.walk():
         if not hasattr(webpage, 'contributors'):
             continue
@@ -44,17 +29,16 @@ def getArticleMetainfo(chapter, collection):
                  E.i(_('Source')), ': ',
                  E.a(webpage.url, href=webpage.url), ' ',
                  E.i(_('Contributors')), ': ', contributors,
-                 style='margin-bottom:1em;'
                  )
         metainfo.append(m)
 
-    xml = metainfo_skeleton % dict(title=xmlescape(_(chapter.title)),
-                                   metainfo=etree.tostring(metainfo))
+    body_content = [E.h1(_(chapter.title)), metainfo]
+    xml = xhtml_page(title=_(chapter.title), body_content=body_content)
     return xml
 
 
 def getImageMetainfo(chapter, collection):
-    metainfo = E.ul(style='list-style-type:none;font-size:50%')
+    metainfo = E.ul({'class': 'metainfo'})
     for img_title, info in collection.img_contributors.items():
         contributors = _filterAnonIpEdits(info['contributors'])
         m = E.li(E.b(img_title), ' ',
@@ -64,7 +48,6 @@ def getImageMetainfo(chapter, collection):
                  E.i(_('Contributors')), ': ', contributors,
                  )
         metainfo.append(m)
-
-    xml = metainfo_skeleton % dict(title=xmlescape(_(chapter.title)),
-                                   metainfo=etree.tostring(metainfo))
+    body_content = [E.h1(_(chapter.title)), metainfo]
+    xml = xhtml_page(title=_(chapter.title), body_content=body_content)
     return xml

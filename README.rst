@@ -16,13 +16,6 @@ lxml is required which in turn requires libxml2-dev libxslt-dev
 
 pytidylib requires HTML tidy from http://tidy.sourceforge.net/
 
-ChangeLog
-======================================================================
-
-2012-04-24 release 0.1.0
-------------------------
-
-* initial release
 
 License
 ======================================================================

@@ -121,7 +121,7 @@ class EpubContainer(object):
             DC = ElementMaker(namespace=nsmap['dc'])
             # author = self.coll.editor
             tree = E.metadata(DC.identifier({'id':'bookid'}, 'bla'),
-                              DC.language('en'), # FIXME
+                              DC.language(self.coll.language),
                               DC.title(self.coll.title or 'untitled'),
                               # DC.creator(author,  # FIXME
                               #            {'{%s}role' % nsmap['opf']: 'aut',

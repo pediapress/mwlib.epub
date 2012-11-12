@@ -236,6 +236,16 @@ class Collection(object):
         self.siteconfig = SiteConfigHandler(custom_siteconfig=custom_siteconfig)
         self.url2webpage = {}
 
+    @property
+    def coll_id(self):
+        m = md5()
+        for lvl, webpage in self.outline.walk():
+            t = webpage.title
+            if isinstance(t, unicode):
+                t = t.encode('utf-8')
+            m.update(t)
+        return m.hexdigest()
+
     def dump(self):
         data = {
             'title': self.title,

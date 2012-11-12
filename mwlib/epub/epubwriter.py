@@ -82,7 +82,7 @@ class EpubContainer(object):
     def writeNCX(self):
         meta = [E.meta({'name': item[0],
                         'content': item[1]}
-                       ) for item in [("dtb:uid", "123456789X"),
+                       ) for item in [("dtb:uid", self.coll.coll_id),
                                       ("dtb:depth", "1"),
                                       ("dtb:totalPageCount", '0'),
                                       ("dtb:maxPageNumber", '0') ]]
@@ -123,7 +123,7 @@ class EpubContainer(object):
             E = ElementMaker(nsmap=nsmap)
             DC = ElementMaker(namespace=nsmap['dc'])
             # author = self.coll.editor
-            tree = E.metadata(DC.identifier({'id':'bookid'}, 'bla'),
+            tree = E.metadata(DC.identifier({'id':'bookid'}, self.coll.coll_id),
                               DC.language(self.coll.language),
                               DC.title(self.coll.title or 'untitled'),
                               # DC.creator(author,  # FIXME
@@ -171,7 +171,7 @@ class EpubContainer(object):
 
         tree = E.package({'version': "2.0",
                           'xmlns': nsmap['opf'],
-                          'unique-identifier': 'bookid'}) # FIXME: use real bookid
+                          'unique-identifier': 'bookid'})
 
 
         tree.extend([writeOPF_metadata(),

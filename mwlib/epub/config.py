@@ -13,3 +13,5 @@ img_abs_path = 'OPS/' + img_rel_path
 
 # maximum number of items in a collection for which parsetrees are held in memory
 max_parsetree_num = 50
+
+publisher = 'PediaPress GmbH'

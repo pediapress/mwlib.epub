@@ -122,13 +122,11 @@ class EpubContainer(object):
         def writeOPF_metadata():
             E = ElementMaker(nsmap=nsmap)
             DC = ElementMaker(namespace=nsmap['dc'])
-            # author = self.coll.editor
             tree = E.metadata(DC.identifier({'id':'bookid'}, self.coll.coll_id),
                               DC.language(self.coll.language),
                               DC.title(self.coll.title or 'untitled'),
-                              # DC.creator(author,  # FIXME
-                              #            {'{%s}role' % nsmap['opf']: 'aut',
-                              #             '{%s}file-as' % nsmap['opf']: author})
+                              DC.creator(self.coll.editor),
+                              DC.publisher(config.publisher),
                               )
             return tree
 
